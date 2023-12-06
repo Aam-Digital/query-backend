@@ -1,15 +1,22 @@
-import { Controller, Get, Headers, HttpException, Param } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Headers,
+  HttpException,
+  Param,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { ApiHeader } from '@nestjs/swagger';
-import { catchError, map } from 'rxjs';
+import { catchError, map, mergeMap } from 'rxjs';
+import { ReportConfig } from './report-config';
 
 @Controller()
 export class AppController {
-  dbUrl = this.configService.get('DATABASE_URL');
-  dbUsername = this.configService.get('DATABASE_USERNAME');
-  dbPassword = this.configService.get('DATABASE_PASSWORD');
-  queryUrl = this.configService.get('QUERY_URL');
+  private dbUrl = this.configService.get('DATABASE_URL');
+  private queryUrl = this.configService.get('QUERY_URL');
+  private schemaDocId = this.configService.get('SCHEMA_CONFIG_ID');
   constructor(
     private http: HttpService,
     private configService: ConfigService,
@@ -23,16 +30,30 @@ export class AppController {
     @Headers('Authorization') token: string,
   ) {
     return this.http
-      .get(`${this.dbUrl}/app/ReportConfig:${reportId}`, {
+      .get<ReportConfig>(`${this.dbUrl}/app/ReportConfig:${reportId}`, {
         headers: { Authorization: token },
       })
       .pipe(
-        map(({ data }) => data),
+        mergeMap(({ data }) => this.executeReport(data)),
         catchError((err) => {
-          throw err.response
+          throw err.response?.data
             ? new HttpException(err.response.data, err.response.status)
             : err;
         }),
       );
+  }
+
+  private executeReport(report: ReportConfig) {
+    if (report.mode !== 'sql') {
+      throw new BadRequestException('Not an SQL report');
+    }
+    if (!report.aggregationDefinitions) {
+      throw new BadRequestException('Report query not configured');
+    }
+    return this.http
+      .post(`${this.queryUrl}/${this.schemaDocId}`, {
+        query: report.aggregationDefinitions,
+      })
+      .pipe(map(({ data }) => data));
   }
 }
