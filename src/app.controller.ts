@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { ApiHeader } from '@nestjs/swagger';
+import { ApiHeader, ApiParam } from '@nestjs/swagger';
 import { catchError, map, mergeMap } from 'rxjs';
 import { ReportConfig } from './report-config';
 
@@ -24,17 +24,19 @@ export class AppController {
 
   // TODO also support cookie auth
   @ApiHeader({ name: 'Authorization', required: false })
-  @Get(':id')
+  @ApiParam({ name: ':db', example: 'app', description: 'Name of database' })
+  @Get(':db/:id')
   queryData(
     @Param('id') reportId: string,
+    @Param(':db') db: string,
     @Headers('Authorization') token: string,
   ) {
     return this.http
-      .get<ReportConfig>(`${this.dbUrl}/app/ReportConfig:${reportId}`, {
+      .get<ReportConfig>(`${this.dbUrl}/${db}/ReportConfig:${reportId}`, {
         headers: { Authorization: token },
       })
       .pipe(
-        mergeMap(({ data }) => this.executeReport(data)),
+        mergeMap(({ data }) => this.executeReport(data, db)),
         catchError((err) => {
           throw err.response?.data
             ? new HttpException(err.response.data, err.response.status)
@@ -43,7 +45,7 @@ export class AppController {
       );
   }
 
-  private executeReport(report: ReportConfig) {
+  private executeReport(report: ReportConfig, db: string) {
     if (report.mode !== 'sql') {
       throw new BadRequestException('Not an SQL report');
     }
@@ -51,7 +53,7 @@ export class AppController {
       throw new BadRequestException('Report query not configured');
     }
     return this.http
-      .post(`${this.queryUrl}/${this.schemaDocId}`, {
+      .post(`${this.queryUrl}/${db}/${this.schemaDocId}`, {
         query: report.aggregationDefinitions,
       })
       .pipe(map(({ data }) => data));

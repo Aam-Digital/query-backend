@@ -56,13 +56,13 @@ describe('AppController', () => {
     const queryResult = { some: 'data' };
     mockHttp.post.mockReturnValue(of({ data: queryResult }));
 
-    controller.queryData('some-id', 'valid token').subscribe((res) => {
+    controller.queryData('some-id', 'app', 'valid token').subscribe((res) => {
       expect(mockHttp.get).toHaveBeenCalledWith(
         `${dbUrl}/app/ReportConfig:some-id`,
         { headers: { Authorization: 'valid token' } },
       );
       expect(mockHttp.post).toHaveBeenCalledWith(
-        `${queryUrl}/${schemaConfigId}`,
+        `${queryUrl}/app/${schemaConfigId}`,
         { query: report.aggregationDefinitions },
       );
       expect(res).toEqual(queryResult);
@@ -78,7 +78,7 @@ describe('AppController', () => {
         response: { data: 'Unauthorized', status: 401 },
       })),
     );
-    controller.queryData('some-id', 'invalid token').subscribe({
+    controller.queryData('some-id', 'app', 'invalid token').subscribe({
       error: (err: HttpException) => {
         expect(err.getStatus()).toBe(HttpStatus.UNAUTHORIZED);
         done();
@@ -93,7 +93,7 @@ describe('AppController', () => {
     };
     mockHttp.get.mockReturnValue(of({ data: report }));
 
-    controller.queryData('some-id', 'valid token').subscribe({
+    controller.queryData('some-id', 'app', 'valid token').subscribe({
       error: (err) => {
         expect(err).toBeInstanceOf(BadRequestException);
         done();
@@ -108,7 +108,7 @@ describe('AppController', () => {
     };
     mockHttp.get.mockReturnValue(of({ data: report }));
 
-    controller.queryData('some-id', 'valid token').subscribe({
+    controller.queryData('some-id', 'app', 'valid token').subscribe({
       error: (err) => {
         expect(err).toBeInstanceOf(BadRequestException);
         done();
