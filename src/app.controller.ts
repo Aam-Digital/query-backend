@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { ApiBody, ApiHeader, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { catchError, concat, map, mergeMap, toArray } from 'rxjs';
 import { SqlReport } from './sql-report';
 import { QueryBody } from './query-body.dto';
@@ -35,7 +35,6 @@ export class AppController {
     required: false,
     description: 'request needs to be authenticated',
   })
-  @ApiBody({ required: false })
   @Post(':db/:id')
   queryData(
     @Param('id') reportId: string,
@@ -50,6 +49,7 @@ export class AppController {
       .pipe(
         mergeMap(({ data }) => this.executeReport(data, db, body)),
         catchError((err) => {
+          console.log('erro', err);
           throw err.response?.data
             ? new HttpException(err.response.data, err.response.status)
             : err;

@@ -128,7 +128,6 @@ describe('AppController', () => {
   });
 
   it('should throw error if user is not permitted to request report', (done) => {
-    // TODO check that this is actual response
     mockHttp.get.mockReturnValue(
       throwError(() => ({
         response: { data: 'Unauthorized', status: 401 },
