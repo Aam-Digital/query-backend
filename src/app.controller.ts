@@ -1,16 +1,18 @@
 import {
   BadRequestException,
+  Body,
   Controller,
-  Get,
   Headers,
   HttpException,
   Param,
+  Post,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { ApiHeader, ApiParam } from '@nestjs/swagger';
+import { ApiBody, ApiHeader, ApiParam } from '@nestjs/swagger';
 import { catchError, map, mergeMap } from 'rxjs';
-import { ReportConfig } from './report-config';
+import { SqlReport } from './sql-report';
+import { QueryBody } from './query-body.dto';
 
 @Controller()
 export class AppController {
@@ -25,18 +27,20 @@ export class AppController {
   // TODO also support cookie auth
   @ApiHeader({ name: 'Authorization', required: false })
   @ApiParam({ name: ':db', example: 'app', description: 'Name of database' })
-  @Get(':db/:id')
+  @ApiBody({ required: false })
+  @Post(':db/:id')
   queryData(
     @Param('id') reportId: string,
     @Param(':db') db: string,
     @Headers('Authorization') token: string,
+    @Body() body?: QueryBody,
   ) {
     return this.http
-      .get<ReportConfig>(`${this.dbUrl}/${db}/ReportConfig:${reportId}`, {
+      .get<SqlReport>(`${this.dbUrl}/${db}/ReportConfig:${reportId}`, {
         headers: { Authorization: token },
       })
       .pipe(
-        mergeMap(({ data }) => this.executeReport(data, db)),
+        mergeMap(({ data }) => this.executeReport(data, db, body)),
         catchError((err) => {
           throw err.response?.data
             ? new HttpException(err.response.data, err.response.status)
@@ -45,17 +49,25 @@ export class AppController {
       );
   }
 
-  private executeReport(report: ReportConfig, db: string) {
+  private executeReport(report: SqlReport, db: string, args?: QueryBody) {
     if (report.mode !== 'sql') {
       throw new BadRequestException('Not an SQL report');
     }
     if (!report.aggregationDefinitions) {
       throw new BadRequestException('Report query not configured');
     }
+    const data: SqsRequest = { query: report.aggregationDefinitions };
+    if (args?.from && args?.to) {
+      data.args = [args.from, args.to];
+    }
+
     return this.http
-      .post(`${this.queryUrl}/${db}/${this.schemaDocId}`, {
-        query: report.aggregationDefinitions,
-      })
+      .post(`${this.queryUrl}/${db}/${this.schemaDocId}`, data)
       .pipe(map(({ data }) => data));
   }
+}
+
+interface SqsRequest {
+  query: string;
+  args?: any[];
 }

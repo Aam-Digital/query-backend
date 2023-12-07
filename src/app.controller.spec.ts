@@ -3,8 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { of, throwError } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
-import { ReportConfig } from './report-config';
+import { SqlReport } from './sql-report';
 import { ConfigService } from '@nestjs/config';
+import { QueryBody } from './query-body.dto';
 
 describe('AppController', () => {
   let controller: AppController;
@@ -48,7 +49,7 @@ describe('AppController', () => {
   });
 
   it('should forward report query to SQS and return result', (done) => {
-    const report: ReportConfig = {
+    const report: SqlReport = {
       mode: 'sql',
       aggregationDefinitions: 'SELECT * FROM someTable',
     };
@@ -71,6 +72,26 @@ describe('AppController', () => {
     });
   });
 
+  it('should add dates as args to query request', (done) => {
+    const report: SqlReport = {
+      mode: 'sql',
+      aggregationDefinitions:
+        'SELECT * FROM Note WHERE WHERE e.date BETWEEN ? AND  ?',
+    };
+    mockHttp.get.mockReturnValue(of({ data: report }));
+    const body: QueryBody = { from: '2023-01-01', to: '2024-01-01' };
+
+    controller
+      .queryData('some-id', 'app', 'valid token', body)
+      .subscribe(() => {
+        expect(mockHttp.post).toHaveBeenCalledWith(
+          `${queryUrl}/app/${schemaConfigId}`,
+          { query: report.aggregationDefinitions, args: [body.from, body.to] },
+        );
+        done();
+      });
+  });
+
   it('should throw error if user is not permitted to request report', (done) => {
     // TODO check that this is actual response
     mockHttp.get.mockReturnValue(
@@ -87,7 +108,7 @@ describe('AppController', () => {
   });
 
   it('should throw error trying to query a non-sql report', (done) => {
-    const report: ReportConfig = {
+    const report: SqlReport = {
       mode: 'exporting' as any,
       aggregationDefinitions: undefined,
     };
@@ -102,7 +123,7 @@ describe('AppController', () => {
   });
 
   it('should throw sql query is not defined', (done) => {
-    const report: ReportConfig = {
+    const report: SqlReport = {
       mode: 'sql',
       aggregationDefinitions: undefined,
     };
