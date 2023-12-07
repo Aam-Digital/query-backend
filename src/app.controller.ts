@@ -49,7 +49,6 @@ export class AppController {
       .pipe(
         mergeMap(({ data }) => this.executeReport(data, db, body)),
         catchError((err) => {
-          console.log('erro', err);
           throw err.response?.data
             ? new HttpException(err.response.data, err.response.status)
             : err;
