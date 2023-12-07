@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { ApiBody, ApiHeader, ApiParam } from '@nestjs/swagger';
+import { ApiBody, ApiHeader, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { catchError, concat, map, mergeMap, toArray } from 'rxjs';
 import { SqlReport } from './sql-report';
 import { QueryBody } from './query-body.dto';
@@ -24,9 +24,17 @@ export class AppController {
     private configService: ConfigService,
   ) {}
 
-  // TODO also support cookie auth
-  @ApiHeader({ name: 'Authorization', required: false })
-  @ApiParam({ name: 'db', example: 'app', description: 'Name of database' })
+  // TODO also support cookie auth? Not really required with Keycloak
+  @ApiOperation({
+    description: `Get the results for the report with the given ID. User needs 'read' access for the requested report entity.`,
+  })
+  @ApiParam({ name: 'id', description: '(full) ID of the report entity' })
+  @ApiParam({ name: 'db', example: 'app', description: 'name of database' })
+  @ApiHeader({
+    name: 'Authorization',
+    required: false,
+    description: 'request needs to be authenticated',
+  })
   @ApiBody({ required: false })
   @Post(':db/:id')
   queryData(
@@ -57,11 +65,13 @@ export class AppController {
       throw new BadRequestException('Report query not configured');
     }
 
+    // execute all requests in sequence
     return concat(
       ...report.aggregationDefinitions.map((query) =>
         this.getQueryResult(query, args, db),
       ),
     ).pipe(
+      // combine results of each request
       toArray(),
       map((res) => [].concat(...res)),
     );
@@ -78,6 +88,9 @@ export class AppController {
   }
 }
 
+/**
+ * Request body as required by the SQS service. See SQS docs for more info.
+ */
 interface SqsRequest {
   query: string;
   args?: any[];
