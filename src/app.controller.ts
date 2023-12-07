@@ -10,7 +10,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { ApiBody, ApiHeader, ApiParam } from '@nestjs/swagger';
-import { catchError, map, mergeMap } from 'rxjs';
+import { catchError, concat, map, mergeMap, toArray } from 'rxjs';
 import { SqlReport } from './sql-report';
 import { QueryBody } from './query-body.dto';
 
@@ -56,13 +56,24 @@ export class AppController {
     if (!report.aggregationDefinitions) {
       throw new BadRequestException('Report query not configured');
     }
-    const data: SqsRequest = { query: report.aggregationDefinitions };
+
+    return concat(
+      ...report.aggregationDefinitions.map((query) =>
+        this.getQueryResult(query, args, db),
+      ),
+    ).pipe(
+      toArray(),
+      map((res) => [].concat(...res)),
+    );
+  }
+
+  private getQueryResult(query: string, args: QueryBody, db: string) {
+    const data: SqsRequest = { query: query };
     if (args?.from && args?.to) {
       data.args = [args.from, args.to];
     }
-
     return this.http
-      .post(`${this.queryUrl}/${db}/${this.schemaDocId}`, data)
+      .post<any[]>(`${this.queryUrl}/${db}/${this.schemaDocId}`, data)
       .pipe(map(({ data }) => data));
   }
 }

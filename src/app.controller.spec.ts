@@ -51,10 +51,10 @@ describe('AppController', () => {
   it('should forward report query to SQS and return result', (done) => {
     const report: SqlReport = {
       mode: 'sql',
-      aggregationDefinitions: 'SELECT * FROM someTable',
+      aggregationDefinitions: ['SELECT * FROM someTable'],
     };
     mockHttp.get.mockReturnValue(of({ data: report }));
-    const queryResult = { some: 'data' };
+    const queryResult = [{ some: 'data' }];
     mockHttp.post.mockReturnValue(of({ data: queryResult }));
 
     controller
@@ -66,7 +66,7 @@ describe('AppController', () => {
         );
         expect(mockHttp.post).toHaveBeenCalledWith(
           `${queryUrl}/app/${schemaConfigId}`,
-          { query: report.aggregationDefinitions },
+          { query: report.aggregationDefinitions[0] },
         );
         expect(res).toEqual(queryResult);
 
@@ -77,8 +77,9 @@ describe('AppController', () => {
   it('should add dates as args to query request', (done) => {
     const report: SqlReport = {
       mode: 'sql',
-      aggregationDefinitions:
+      aggregationDefinitions: [
         'SELECT * FROM Note WHERE WHERE e.date BETWEEN ? AND  ?',
+      ],
     };
     mockHttp.get.mockReturnValue(of({ data: report }));
     const body: QueryBody = { from: '2023-01-01', to: '2024-01-01' };
@@ -88,8 +89,40 @@ describe('AppController', () => {
       .subscribe(() => {
         expect(mockHttp.post).toHaveBeenCalledWith(
           `${queryUrl}/app/${schemaConfigId}`,
-          { query: report.aggregationDefinitions, args: [body.from, body.to] },
+          {
+            query: report.aggregationDefinitions[0],
+            args: [body.from, body.to],
+          },
         );
+        done();
+      });
+  });
+
+  it('should concatenate the result of multiple SELECT queries', (done) => {
+    const firstResult = [{ value: 'first' }, { value: 'second' }];
+    const secondResult = [{ value: 'third' }];
+    const report: SqlReport = {
+      mode: 'sql',
+      aggregationDefinitions: ['SELECT * FROM Child', 'SELECT * FROM School'],
+    };
+    mockHttp.get.mockReturnValue(of({ data: report }));
+    mockHttp.post
+      .mockReturnValueOnce(of({ data: firstResult }))
+      .mockReturnValueOnce(of({ data: secondResult }));
+
+    controller
+      .queryData('ReportConfig:some-id', 'app', 'valid token')
+      .subscribe((res) => {
+        expect(mockHttp.post).toHaveBeenCalledWith(
+          `${queryUrl}/app/${schemaConfigId}`,
+          { query: report.aggregationDefinitions[0] },
+        );
+        expect(mockHttp.post).toHaveBeenCalledWith(
+          `${queryUrl}/app/${schemaConfigId}`,
+          { query: report.aggregationDefinitions[1] },
+        );
+        expect(res).toEqual([...firstResult, ...secondResult]);
+
         done();
       });
   });

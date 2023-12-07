@@ -1,4 +1,4 @@
 export interface SqlReport {
   mode: 'sql';
-  aggregationDefinitions: string;
+  aggregationDefinitions: string[];
 }
