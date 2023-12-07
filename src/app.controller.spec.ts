@@ -57,19 +57,21 @@ describe('AppController', () => {
     const queryResult = { some: 'data' };
     mockHttp.post.mockReturnValue(of({ data: queryResult }));
 
-    controller.queryData('some-id', 'app', 'valid token').subscribe((res) => {
-      expect(mockHttp.get).toHaveBeenCalledWith(
-        `${dbUrl}/app/ReportConfig:some-id`,
-        { headers: { Authorization: 'valid token' } },
-      );
-      expect(mockHttp.post).toHaveBeenCalledWith(
-        `${queryUrl}/app/${schemaConfigId}`,
-        { query: report.aggregationDefinitions },
-      );
-      expect(res).toEqual(queryResult);
+    controller
+      .queryData('ReportConfig:some-id', 'app', 'valid token')
+      .subscribe((res) => {
+        expect(mockHttp.get).toHaveBeenCalledWith(
+          `${dbUrl}/app/ReportConfig:some-id`,
+          { headers: { Authorization: 'valid token' } },
+        );
+        expect(mockHttp.post).toHaveBeenCalledWith(
+          `${queryUrl}/app/${schemaConfigId}`,
+          { query: report.aggregationDefinitions },
+        );
+        expect(res).toEqual(queryResult);
 
-      done();
-    });
+        done();
+      });
   });
 
   it('should add dates as args to query request', (done) => {
@@ -82,7 +84,7 @@ describe('AppController', () => {
     const body: QueryBody = { from: '2023-01-01', to: '2024-01-01' };
 
     controller
-      .queryData('some-id', 'app', 'valid token', body)
+      .queryData('ReportConfig:some-id', 'app', 'valid token', body)
       .subscribe(() => {
         expect(mockHttp.post).toHaveBeenCalledWith(
           `${queryUrl}/app/${schemaConfigId}`,
@@ -99,12 +101,14 @@ describe('AppController', () => {
         response: { data: 'Unauthorized', status: 401 },
       })),
     );
-    controller.queryData('some-id', 'app', 'invalid token').subscribe({
-      error: (err: HttpException) => {
-        expect(err.getStatus()).toBe(HttpStatus.UNAUTHORIZED);
-        done();
-      },
-    });
+    controller
+      .queryData('ReportConfig:some-id', 'app', 'invalid token')
+      .subscribe({
+        error: (err: HttpException) => {
+          expect(err.getStatus()).toBe(HttpStatus.UNAUTHORIZED);
+          done();
+        },
+      });
   });
 
   it('should throw error trying to query a non-sql report', (done) => {
@@ -114,12 +118,14 @@ describe('AppController', () => {
     };
     mockHttp.get.mockReturnValue(of({ data: report }));
 
-    controller.queryData('some-id', 'app', 'valid token').subscribe({
-      error: (err) => {
-        expect(err).toBeInstanceOf(BadRequestException);
-        done();
-      },
-    });
+    controller
+      .queryData('ReportConfig:some-id', 'app', 'valid token')
+      .subscribe({
+        error: (err) => {
+          expect(err).toBeInstanceOf(BadRequestException);
+          done();
+        },
+      });
   });
 
   it('should throw sql query is not defined', (done) => {
@@ -129,11 +135,13 @@ describe('AppController', () => {
     };
     mockHttp.get.mockReturnValue(of({ data: report }));
 
-    controller.queryData('some-id', 'app', 'valid token').subscribe({
-      error: (err) => {
-        expect(err).toBeInstanceOf(BadRequestException);
-        done();
-      },
-    });
+    controller
+      .queryData('ReportConfig:some-id', 'app', 'valid token')
+      .subscribe({
+        error: (err) => {
+          expect(err).toBeInstanceOf(BadRequestException);
+          done();
+        },
+      });
   });
 });

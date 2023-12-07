@@ -26,17 +26,17 @@ export class AppController {
 
   // TODO also support cookie auth
   @ApiHeader({ name: 'Authorization', required: false })
-  @ApiParam({ name: ':db', example: 'app', description: 'Name of database' })
+  @ApiParam({ name: 'db', example: 'app', description: 'Name of database' })
   @ApiBody({ required: false })
   @Post(':db/:id')
   queryData(
     @Param('id') reportId: string,
-    @Param(':db') db: string,
+    @Param('db') db: string,
     @Headers('Authorization') token: string,
     @Body() body?: QueryBody,
   ) {
     return this.http
-      .get<SqlReport>(`${this.dbUrl}/${db}/ReportConfig:${reportId}`, {
+      .get<SqlReport>(`${this.dbUrl}/${db}/${reportId}`, {
         headers: { Authorization: token },
       })
       .pipe(
