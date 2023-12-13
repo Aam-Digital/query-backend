@@ -78,7 +78,7 @@ describe('AppController', () => {
     const report: SqlReport = {
       mode: 'sql',
       aggregationDefinitions: [
-        'SELECT * FROM Note WHERE WHERE e.date BETWEEN ? AND  ?',
+        'SELECT * FROM Note WHERE e.date BETWEEN ? AND  ?',
       ],
     };
     mockHttp.get.mockReturnValue(of({ data: report }));

@@ -89,6 +89,7 @@ export class AppController {
 
 /**
  * Request body as required by the SQS service. See SQS docs for more info.
+ * {@link https://neighbourhood.ie/products-and-services/structured-query-server}
  */
 interface SqsRequest {
   query: string;
