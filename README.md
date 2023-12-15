@@ -10,6 +10,6 @@ To use this you need a running [CouchDB](https://docs.couchdb.org/en/stable/) an
 The following variables might need to be configured in the `.env` file:
 - `DATABASE_URL` URL of the `CouchDB` or [replication backend](https://github.com/Aam-Digital/replication-backend)
 - `QUERY_URL` URL of the SQS
-- `SCHEMA_CONFIG_ID` database ID of the document which holds the SQS schema
+- `SCHEMA_CONFIG_ID` database ID of the document which holds the SQS schema (default `_design/sqlite:config`)
 - `PORT` where the app should listen (default 3000)
 - `SENTRY_DSN` for remote logging

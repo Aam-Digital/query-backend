@@ -34,6 +34,8 @@ COPY --from=builder /app/dist ./dist
 # (optional) The sentry DSN in order to send the error messages to sentry
 ENV SENTRY_DSN=""
 ENV PORT=""
+ENV DATABASE_URL=""
+ENV QUERY_URL=""
 
 CMD ["node", "dist/main"]
 

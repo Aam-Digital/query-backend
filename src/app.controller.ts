@@ -14,7 +14,7 @@ import { catchError, concat, map, mergeMap, toArray } from 'rxjs';
 import { SqlReport } from './sql-report';
 import { QueryBody } from './query-body.dto';
 
-@Controller()
+@Controller('report')
 export class AppController {
   private dbUrl = this.configService.get('DATABASE_URL');
   private queryUrl = this.configService.get('QUERY_URL');
