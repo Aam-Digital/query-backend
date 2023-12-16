@@ -1,6 +1,7 @@
 # Query Backend
 
 This service allows to run SQL queries on the database.
+In particular, this service allows users with limited permissions to see reports of aggregated statistics across all data (e.g. a supervisor could analyse reports without having access to possibly confidential details of participants or notes).
 
 ## Usage
 See the [ndb-setup repo](https://github.com/Aam-Digital/ndb-setup) for full deployment instructions.
