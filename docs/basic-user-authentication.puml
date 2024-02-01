@@ -1,0 +1,27 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor user as "User"
+participant adapp as "AD App"
+participant adbackend as "AD Backend"
+database adauth as "AD Keycloak"
+database addb as "AD Database"
+
+user -> adapp: Open Aam Digital PWA
+adapp -> adauth: redirect to auth provider, request authentication
+adauth --> user: request credentials from user
+user -> adauth: submit user credentials
+adauth <-> addb: check credentials
+
+alt "credentials correct"
+  adauth -> adapp: redirect to App with token
+  user -> adapp: uses app
+  adapp -> adbackend: request data
+  adbackend <--> adauth: verify token
+  adbackend -> adapp: return data
+  ...
+end
+
+@enduml
