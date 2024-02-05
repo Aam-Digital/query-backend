@@ -8,6 +8,7 @@ servers:
   - url: https://dev.aam-digital.com/api/v1
 tags:
   - name: report
+
 paths:
   /report:
     get:
@@ -16,13 +17,16 @@ paths:
       summary: Return list of available Reports
       responses:
         200:
-          description: List of all available Reports
+          description: List of all available Reports the requester has access permissions to, empty array if no reports are available
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Report'
+        401:
+          description: If no valid access token (see TODO)
+          
   #    post:
   #      tags:
   #        - report
@@ -44,17 +48,23 @@ paths:
           required: true
       responses:
         200:
-          description: List of all available Reports
+          description: Get details of a report, including details of the data structure (schema) this specific report's data has
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Report'
+        404:
+          description: If the Report does not exist
+        401:
+          description: If the access token does not grant permission to this Report
+          
 
   /report/{reportId}/calculation:
     post:
       tags:
         - report
-      summary: Trigger a new report calculation run
+      summary: Trigger a new report calculation run. Check status of the asynchronous calculation via the /report-calculation endpoint 
+        TODO or optionally receive status updates via a webhook if that has been set up for the authorized client
       parameters:
         - in: path
           name: reportId
@@ -63,19 +73,19 @@ paths:
           required: true
         - in: query
           name: from
+          description: start date for report period
           schema:
             type: string
             format: date
-            required: true
         - in: query
           name: to
+          description: end date for report period
           schema:
             type: string
             format: date
-            required: true
       responses:
         200:
-          description: Return calculation identifier
+          description: Return calculation identifier, to be used to check status and result data
           content:
             application/json:
               schema:
@@ -87,6 +97,9 @@ paths:
                   type:
                     type: string
                     example: "ReportCalculation"
+        401:
+          description: If the access token does not grant permission to this Report
+
 
   /report-calculation/report/{reportId}:
     get:
@@ -101,11 +114,15 @@ paths:
           required: true
       responses:
         200:
-          description: Successful report data response
+          description: List of metadata of all calculations triggered by any user (pending and completed)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReportCalculation'
+        401:
+          description: If the access token does not grant permission to this Report
+        404:
+          description: If report does not exist
 
   /report-calculation/{calculationId}:
     get:
@@ -127,6 +144,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ReportCalculation'
+        401:
+          description: If the access token does not grant permission to this Report
+        404:
+          description: If the calculation identifier does not exist
 
   /report-calculation/{calculationId}/data:
     get:
@@ -150,7 +171,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ReportData'
         404:
-          description: report data is not available yet
+          description: report data is not available yet (when either the calculation id is not valid or the calculation is still running)
+        401:
+          description: If the access token does not grant permission to this Report
 
 components:
   schemas:
