@@ -95,7 +95,7 @@ paths:
         - report
       summary: Trigger a new report calculation run.
       description: Trigger a new report calculation run. Check status of the asynchronous calculation via the /report-calculation endpoint
-        TODO or optionally receive status updates via a webhook if that has been set up for the authorized client
+        (CURRENTLY UNDER DEVELOPMENT) optionally receive status updates via a webhook if that has been set up for the authorized client
       parameters:
         - in: path
           name: reportId
