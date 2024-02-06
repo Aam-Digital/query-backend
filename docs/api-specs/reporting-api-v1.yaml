@@ -5,13 +5,7 @@ info:
     API for manage and generate user created reports.
   version: 1.0.0-draft.4
 servers:
-  - url: https://{customerId}.aam-digital.com/api/v1/reporting
-    description: Production Instance
-    variables:
-      customerId:
-        default: demo
-        description: Customer ID assigned by the service provider
-  - url: https://{customerId}.aam-digital.dev/api/v1/reporting
+  - url: https://{customerId}.aam-digital.net/api/v1/reporting
     description: Developer Instance for testing
     variables:
       customerId:
@@ -232,15 +226,18 @@ components:
           type: object
 
   securitySchemes:
-    production:
-      type: openIdConnect
-      openIdConnectUrl: https://keycloak.aam-digital.com/realms/demo/.well-known/openid-configuration
     development:
-      type: openIdConnect
-      openIdConnectUrl: https://keycloak.aam-digital.net/realms/dev/.well-known/openid-configuration
+      type: oauth2
+      description: This API uses OAuth2 with the Client Credentials Flow
+      flows:
+        clientCredentials:
+          tokenUrl: https://keycloak.aam-digital.net/realms/TolaData/protocol/openid-connect/token
+          scopes:
+            reports_read: Read Report and ReportCalculation
+            reports_write: Trigger new ReportCalculation
 
 security:
   - development:
       - reports_read
-  - production:
-      - reports_read
+      - reports_write
+
