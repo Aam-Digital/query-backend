@@ -1,0 +1,233 @@
+openapi: 3.0.3
+info:
+  title: Aam Digital - Reporting API
+  description: |-
+    API for manage and generate user created reports.
+  version: 1.0.0-draft.4
+servers:
+  - url: https://{customerId}.aam-digital.com/api/v1/reporting
+    variables:
+      customerId:
+        default: dev
+        description: Customer ID assigned by the service provider
+tags:
+  - name: report
+
+paths:
+  /report:
+    get:
+      tags:
+        - report
+      summary: Return list of available Reports
+      responses:
+        200:
+          description: List of all available Reports the requester has access permissions to, empty array if no reports are available
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Report'
+        401:
+          description: If no valid access token (see TODO)
+
+  /report/{reportId}:
+    get:
+      tags:
+        - report
+      summary: Return report by ID
+      parameters:
+        - in: path
+          name: reportId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Get details of a report, including details of the data structure (schema) this specific report's data has
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        404:
+          description: If the Report does not exist
+        401:
+          description: If the access token does not grant permission to this Report
+
+  /report-calculation/report/{reportId}:
+    get:
+      tags:
+        - report
+      summary: Return all report calculations for a report
+      parameters:
+        - in: path
+          name: reportId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List of metadata of all calculations triggered by any user (pending and completed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportCalculation'
+        401:
+          description: If the access token does not grant permission to this Report
+        404:
+          description: If report does not exist
+
+    post:
+      tags:
+        - report
+      summary: Trigger a new report calculation run.
+      description: Trigger a new report calculation run. Check status of the asynchronous calculation via the /report-calculation endpoint
+        TODO or optionally receive status updates via a webhook if that has been set up for the authorized client
+      parameters:
+        - in: path
+          name: reportId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: from
+          description: start date for report period
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          description: end date for report period
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: Return calculation identifier, to be used to check status and result data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  type:
+                    type: string
+                    example: "ReportCalculation"
+        401:
+          description: If the access token does not grant permission to this Report
+
+  /report-calculation/{calculationId}:
+    get:
+      tags:
+        - report
+      summary: Return metadata for a report calculation
+      parameters:
+        - in: path
+          name: calculationId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Successful report data response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportCalculation'
+        401:
+          description: If the access token does not grant permission to this Report
+        404:
+          description: If the calculation identifier does not exist
+
+  /report-calculation/{calculationId}/data:
+    get:
+      tags:
+        - report
+      summary: Fetch actual report data for a specific calculation
+      parameters:
+        - in: path
+          name: calculationId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: successful report data response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportData'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ReportData'
+        404:
+          description: report data is not available yet (when either the calculation id is not valid or the calculation is still running)
+        401:
+          description: If the access token does not grant permission to this Report
+
+components:
+  schemas:
+    Report:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: report_all_course_members
+        calculationPending:
+          type: boolean
+        schema:
+          $ref: '#/components/schemas/ReportSchema'
+
+    ReportSchema:
+      type: object
+      properties:
+        fields:
+          type: array
+
+    ReportCalculation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          example: date
+        end_date:
+          type: string
+          example: date
+          nullable: true
+        status:
+          type: string
+          description: Current status of the run
+          enum:
+            - PENDING
+            - RUNNING
+            - FINISHED_SUCCESS
+            - FINISHED_ERROR
+
+    ReportData:
+      type: object
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        data:
+          type: object
+
+  securitySchemes:
+    openId:
+      type: openIdConnect
+      openIdConnectUrl: https://keycloak.aam-digital.com/realms/dev/.well-known/openid-configuration
+
+security:
+  - openId:
+      - reports_read
+      - reports_write
