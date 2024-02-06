@@ -175,7 +175,7 @@ paths:
           required: true
       responses:
         200:
-          description: successful report data response
+          description: The actual data that has been calculated by the calculation run. This matches the schema defined in the /report/id 
           content:
             application/json:
               schema:
