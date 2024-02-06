@@ -6,6 +6,13 @@ info:
   version: 1.0.0-draft.4
 servers:
   - url: https://{customerId}.aam-digital.com/api/v1/reporting
+    description: Production Instance
+    variables:
+      customerId:
+        default: demo
+        description: Customer ID assigned by the service provider
+  - url: https://{customerId}.aam-digital.dev/api/v1/reporting
+    description: Developer Instance for testing
     variables:
       customerId:
         default: dev
@@ -190,6 +197,8 @@ components:
       properties:
         fields:
           type: array
+          items:
+            type: object
 
     ReportCalculation:
       type: object
@@ -223,11 +232,15 @@ components:
           type: object
 
   securitySchemes:
-    openId:
+    production:
       type: openIdConnect
-      openIdConnectUrl: https://keycloak.aam-digital.com/realms/dev/.well-known/openid-configuration
+      openIdConnectUrl: https://keycloak.aam-digital.com/realms/demo/.well-known/openid-configuration
+    development:
+      type: openIdConnect
+      openIdConnectUrl: https://keycloak.aam-digital.net/realms/dev/.well-known/openid-configuration
 
 security:
-  - openId:
+  - development:
       - reports_read
-      - reports_write
+  - production:
+      - reports_read
