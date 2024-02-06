@@ -42,7 +42,7 @@ paths:
           - reports_read
       tags:
         - report
-      summary: Return report by ID
+      summary: Return report metadata by ID
       parameters:
         - in: path
           name: reportId
