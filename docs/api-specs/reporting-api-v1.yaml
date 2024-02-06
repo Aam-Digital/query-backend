@@ -17,6 +17,9 @@ tags:
 paths:
   /report:
     get:
+      security:
+        - development:
+          - reports_read
       tags:
         - report
       summary: Return list of available Reports
@@ -34,6 +37,9 @@ paths:
 
   /report/{reportId}:
     get:
+      security:
+        - development:
+          - reports_read
       tags:
         - report
       summary: Return report by ID
@@ -57,6 +63,9 @@ paths:
 
   /report-calculation/report/{reportId}:
     get:
+      security:
+        - development:
+          - reports_read
       tags:
         - report
       summary: Return all report calculations for a report
@@ -79,6 +88,9 @@ paths:
           description: If report does not exist
 
     post:
+      security:
+        - development:
+          - reports_write
       tags:
         - report
       summary: Trigger a new report calculation run.
@@ -121,6 +133,9 @@ paths:
 
   /report-calculation/{calculationId}:
     get:
+      security:
+        - development:
+          - reports_read
       tags:
         - report
       summary: Return metadata for a report calculation
@@ -146,6 +161,9 @@ paths:
 
   /report-calculation/{calculationId}/data:
     get:
+      security:
+        - development:
+          - reports_read
       tags:
         - report
       summary: Fetch actual report data for a specific calculation
@@ -235,9 +253,3 @@ components:
           scopes:
             reports_read: Read Report and ReportCalculation
             reports_write: Trigger new ReportCalculation
-
-security:
-  - development:
-      - reports_read
-      - reports_write
-
