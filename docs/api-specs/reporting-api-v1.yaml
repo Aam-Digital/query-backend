@@ -3,7 +3,7 @@ info:
   title: Aam Digital - Reporting API
   description: |-
     API to manage reports that provide data calculated based on any entities of the Aam Digital system.
-  version: 1.0.0-draft.4
+  version: 1.0.0-alpha.1
 servers:
   - url: https://{customerId}.aam-digital.net/api/v1/reporting
     description: Developer Instance for testing
