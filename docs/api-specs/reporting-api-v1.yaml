@@ -125,9 +125,6 @@ paths:
                   id:
                     type: string
                     format: uuid
-                  type:
-                    type: string
-                    example: "ReportCalculation"
         401:
           description: If the access token does not grant permission to this Report
 
