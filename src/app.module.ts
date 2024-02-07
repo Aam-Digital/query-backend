@@ -1,9 +1,5 @@
 import { HttpException, Module } from '@nestjs/common';
-import {
-  SentryInterceptor,
-  SentryModule,
-  SentryModuleOptions,
-} from '@ntegral/nestjs-sentry';
+import { SentryInterceptor, SentryModule } from '@ntegral/nestjs-sentry';
 import { SeverityLevel } from '@sentry/types';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -55,7 +51,7 @@ const lowSeverityLevels: SeverityLevel[] = ['log', 'info'];
               return event;
             }
           },
-        } as SentryModuleOptions;
+        };
       },
     }),
     ReportModule,

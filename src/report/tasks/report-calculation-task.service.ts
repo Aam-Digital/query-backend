@@ -16,7 +16,7 @@ export class ReportCalculationTask {
       .pipe(
         catchError((err, caught) => {
           this.logger.log('reportCalculationProcessor', err, caught);
-          throw caught;
+          throw err;
         }),
       )
       .subscribe((_) => {

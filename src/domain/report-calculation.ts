@@ -42,17 +42,17 @@ export class ReportCalculation {
     return this;
   }
 
-  setStartDate(startDate: string): ReportCalculation {
+  setStartDate(startDate: string | null): ReportCalculation {
     this.start_date = startDate;
     return this;
   }
 
-  setEndDate(endDate: string): ReportCalculation {
+  setEndDate(endDate: string | null): ReportCalculation {
     this.end_date = endDate;
     return this;
   }
 
-  setOutcome(outcome: ReportCalculationOutcome): ReportCalculation {
+  setOutcome(outcome: ReportCalculationOutcome | null): ReportCalculation {
     this.outcome = outcome;
     return this;
   }

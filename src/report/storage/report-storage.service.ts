@@ -5,8 +5,14 @@ import { ReportRepository } from '../repository/report-repository.service';
 import { map, Observable } from 'rxjs';
 import { Injectable } from '@nestjs/common';
 import { ReportData } from 'src/domain/report-data';
-import { ReportCalculation } from 'src/domain/report-calculation';
-import { ReportCalculationRepository } from '../repository/report-calculation-repository.service';
+import {
+  ReportCalculation,
+  ReportCalculationStatus,
+} from 'src/domain/report-calculation';
+import {
+  ReportCalculationEntity,
+  ReportCalculationRepository,
+} from '../repository/report-calculation-repository.service';
 
 @Injectable()
 export class DefaultReportStorage implements ReportStorage {
@@ -37,35 +43,90 @@ export class DefaultReportStorage implements ReportStorage {
     );
   }
 
-  isCalculationOngoing(reportRef: Reference): boolean {
-    return this.reportCalculationRepository.isCalculationOngoing(reportRef);
+  isCalculationOngoing(reportRef: Reference): Observable<boolean> {
+    return this.reportCalculationRepository
+      .fetchCalculations()
+      .pipe(
+        map(
+          (response) =>
+            response.rows
+              .filter(
+                (reportCalculation) =>
+                  reportCalculation.doc.report.id === reportRef.id,
+              )
+              .filter(
+                (reportCalculation) =>
+                  reportCalculation.doc.status ===
+                    ReportCalculationStatus.PENDING ||
+                  reportCalculation.doc.status ===
+                    ReportCalculationStatus.RUNNING,
+              ).length > 0,
+        ),
+      );
   }
 
   fetchPendingCalculations(): Observable<ReportCalculation[]> {
-    return this.reportCalculationRepository.fetchPendingCalculations();
+    return this.reportCalculationRepository
+      .fetchCalculations()
+      .pipe(
+        map((response) =>
+          response.rows
+            .filter(
+              (reportCalculation) =>
+                reportCalculation.doc.status ===
+                ReportCalculationStatus.PENDING,
+            )
+            .map((entity: ReportCalculationEntity) =>
+              this.mapFromEntity(entity),
+            ),
+        ),
+      );
   }
 
   fetchCalculations(reportRef: Reference): Observable<ReportCalculation[]> {
-    return this.reportCalculationRepository.fetchCalculations(reportRef);
+    return this.reportCalculationRepository
+      .fetchCalculations()
+      .pipe(
+        map((response) =>
+          response.rows
+            .filter(
+              (reportCalculation) =>
+                reportCalculation.doc.report.id === reportRef.id,
+            )
+            .map((entity: ReportCalculationEntity) =>
+              this.mapFromEntity(entity),
+            ),
+        ),
+      );
   }
 
   fetchCalculation(
-    runRef: Reference,
+    calculationRef: Reference,
   ): Observable<ReportCalculation | undefined> {
-    return this.reportCalculationRepository.fetchCalculation(runRef);
+    return this.reportCalculationRepository.fetchCalculation(calculationRef);
   }
 
   storeCalculation(
-    reportRun: ReportCalculation,
+    reportCalculation: ReportCalculation,
   ): Observable<ReportCalculation> {
-    return this.reportCalculationRepository.storeCalculation(reportRun);
+    return this.reportCalculationRepository
+      .storeCalculation(reportCalculation)
+      .pipe(map((entity) => entity));
   }
 
-  storeData(runData: ReportData): Observable<ReportData> {
-    return this.reportCalculationRepository.storeData(runData);
+  storeData(reportData: ReportData): Observable<ReportData> {
+    return this.reportCalculationRepository.storeData(reportData);
   }
 
-  fetchData(runRef: Reference): Observable<ReportData | undefined> {
-    return this.reportCalculationRepository.fetchData(runRef);
+  fetchData(calculationRef: Reference): Observable<ReportData | undefined> {
+    return this.reportCalculationRepository.fetchData(calculationRef);
+  }
+
+  private mapFromEntity(entity: ReportCalculationEntity): ReportCalculation {
+    return new ReportCalculation(entity.doc.id, entity.doc.report)
+      .setStatus(entity.doc.status)
+      .setStartDate(entity.doc.start_date)
+      .setEndDate(entity.doc.end_date)
+      .setOutcome(entity.doc.outcome);
   }
 }

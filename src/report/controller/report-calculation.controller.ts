@@ -4,18 +4,42 @@ import {
   Headers,
   NotFoundException,
   Param,
+  Post,
 } from '@nestjs/common';
 import { DefaultReportStorage } from '../storage/report-storage.service';
 import { map, Observable } from 'rxjs';
 import { ReportCalculation } from '../../domain/report-calculation';
 import { Reference } from '../../domain/reference';
 import { ReportData } from '../../domain/report-data';
+import { v4 as uuidv4 } from 'uuid';
 
-@Controller('/report-calculation')
+@Controller('/api/v1/reporting')
 export class ReportCalculationController {
   constructor(private reportStorage: DefaultReportStorage) {}
 
-  @Get('/report/:reportId')
+  @Post('/report-calculation/report/:reportId')
+  startCalculation(
+    @Headers('Authorization') token: string,
+    @Param('reportId') reportId: string,
+  ): Observable<Reference> {
+    // todo auth check -> try to fetch report
+
+    return this.reportStorage
+      .storeCalculation(
+        new ReportCalculation(
+          `ReportCalculation:${uuidv4()}`,
+          new Reference(reportId, 'Report'),
+        ),
+      )
+      .pipe(
+        map(
+          (reportCalculation) =>
+            new Reference(reportCalculation.id, 'ReportCalculation'),
+        ),
+      );
+  }
+
+  @Get('/report-calculation/report/:reportId')
   fetchReportCalculations(
     @Headers('Authorization') token: string,
     @Param('reportId') reportId: string,
@@ -23,7 +47,7 @@ export class ReportCalculationController {
     return this.reportStorage.fetchCalculations(new Reference(reportId));
   }
 
-  @Get('/:calculationId')
+  @Get('/report-calculation/:calculationId')
   fetchRun(
     @Headers('Authorization') token: string,
     @Param('calculationId') calculationId: string,
@@ -40,7 +64,7 @@ export class ReportCalculationController {
       );
   }
 
-  @Get('/:calculationId/data')
+  @Get('/report-calculation/:calculationId/data')
   fetchRunData(
     @Headers('Authorization') token: string,
     @Param('calculationId') calculationId: string,

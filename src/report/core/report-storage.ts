@@ -28,5 +28,5 @@ export interface ReportStorage {
 
   fetchData(runRef: Reference): Observable<ReportData | undefined>;
 
-  isCalculationOngoing(reportRef: Reference): boolean;
+  isCalculationOngoing(reportRef: Reference): Observable<boolean>;
 }
