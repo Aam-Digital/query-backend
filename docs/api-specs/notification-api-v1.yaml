@@ -1,0 +1,255 @@
+openapi: 3.0.3
+info:
+  title: Aam Digital - Notification API
+  description: |-
+    API to manage event subscriptions and webhooks that inform about relevant change based on any entities of the Aam Digital system.
+
+    A webhook will send pre-defined Events to an endpoint you specify. You
+  version: 1.0.0-alpha.1
+servers:
+  - url: https://{customerId}.aam-digital.net/api/v1/notification
+    description: Developer Instance for testing
+    variables:
+      customerId:
+        default: dev
+        description: Customer ID assigned by the service provider
+tags:
+  - name: notification
+
+paths:
+  /webhook:
+    get:
+      tags:
+        - notification
+      summary: Return list of existing Webhooks
+      responses:
+        200:
+          description: List of all available Webhooks the requester has created, empty array if no Webhooks are available
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Webhook'
+        401:
+          description: If no valid access token
+        403:
+          description: No permissions to access the resource
+
+    post:
+      tags:
+        - notification
+      summary: Create a new Webhook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  example: wh_aam_digital_reporting
+                configuration:
+                  $ref: '#/components/schemas/WebhookConfiguration'
+      responses:
+        200:
+          description: Webhook was stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        401:
+          description: If no valid access token
+        403:
+          description: No permissions to access the resource
+
+  /webhook/{webhookId}:
+    get:
+      tags:
+        - notification
+      summary: Return a specific Webhook
+      parameters:
+        - in: path
+          name: webhookId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Get details of a webhook, including details of subscribed events and configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        401:
+          description: If no valid access token
+        403:
+          description: No permissions to access the resource
+        404:
+          description: Resource not found
+    delete:
+      tags:
+        - notification
+      summary: Delete a Webhook
+      parameters:
+        - in: path
+          name: webhookId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Event deleted from Webhook events
+        401:
+          description: If no valid access token
+        403:
+          description: No permissions to access the resource
+
+  /webhook/{webhookId}/event/{eventName}:
+    post:
+      tags:
+        - notification
+      summary: Add an event to a webhook
+      parameters:
+        - in: path
+          name: webhookId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: eventName
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Event added to Webhook events
+        401:
+          description: If no valid access token
+        403:
+          description: No permissions to access the resource
+        404:
+          description: Resource not found
+    delete:
+      tags:
+        - notification
+      summary: Remove an event from a webhook
+      parameters:
+        - in: path
+          name: webhookId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: eventName
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Event deleted from Webhook events
+        401:
+          description: If no valid access token
+        403:
+          description: No permissions to access the resource
+
+components:
+  schemas:
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: wh_aam_digital_reporting
+        configuration:
+          $ref: '#/components/schemas/WebhookConfiguration'
+
+    WebhookConfiguration:
+      type: object
+      properties:
+        method:
+          type: string
+          enum:
+            - GET
+            - POST
+        targetUrl:
+          type: string
+        authenticationType:
+          type: string
+          enum:
+            - API_KEY
+            - BASIC_AUTH
+            - OAUTH2_CLIENT_CREDENTIALS
+        authentication:
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/ApiKeyAuthConfig'
+            - $ref: '#/components/schemas/BasicAuthAuthConfig'
+            - $ref: '#/components/schemas/OAuth2ClientCredentialsAuthConfig'
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventType'
+
+    EventType:
+      type: string
+      enum:
+        - NEW_REPORT_DATA_AVAILABLE
+
+    Event:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/EventType'
+        data:
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/NewReportDataAvailableEvent'
+
+    NewReportDataAvailableEvent:
+      type: object
+      properties:
+        reportId:
+          type: string
+        customerId:
+          type: string
+
+    ApiKeyAuthConfig:
+      type: object
+      properties:
+        key:
+          type: string
+        headerName:
+          type: string
+
+    BasicAuthAuthConfig:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    OAuth2ClientCredentialsAuthConfig:
+      type: object
+      properties:
+        tokenEndpoint:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+
+  securitySchemes:
+    development:
+      type: oauth2
+      description: This API uses OAuth2 with the Client Credentials Flow
+      flows:
+        clientCredentials:
+          tokenUrl: https://keycloak.aam-digital.net/realms/TolaData/protocol/openid-connect/token
