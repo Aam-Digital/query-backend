@@ -33,7 +33,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Report'
         401:
-          description: If no valid access token (see TODO)
+          description: If no valid access token
 
   /report/{reportId}:
     get:
