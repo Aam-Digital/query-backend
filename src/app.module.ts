@@ -32,6 +32,10 @@ const lowSeverityLevels: SeverityLevel[] = ['log', 'info'];
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
+        if (!configService.get('SENTRY_DSN')) {
+          return {};
+        }
+
         return {
           dsn: configService.getOrThrow('SENTRY_DSN'),
           debug: true,

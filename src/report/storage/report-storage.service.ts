@@ -4,15 +4,15 @@ import { ReportStorage } from '../core/report-storage';
 import { ReportRepository } from '../repository/report-repository.service';
 import { map, Observable } from 'rxjs';
 import { Injectable } from '@nestjs/common';
-import { ReportData } from 'src/domain/report-data';
 import {
   ReportCalculation,
   ReportCalculationStatus,
-} from 'src/domain/report-calculation';
+} from '../../domain/report-calculation';
 import {
   ReportCalculationEntity,
   ReportCalculationRepository,
 } from '../repository/report-calculation-repository.service';
+import { ReportData } from '../../domain/report-data';
 
 @Injectable()
 export class DefaultReportStorage implements ReportStorage {
