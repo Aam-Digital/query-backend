@@ -4,6 +4,7 @@ import { SentryService } from '@ntegral/nestjs-sentry';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('query');
 
   // // SwaggerUI setup see https://docs.nestjs.com/openapi/introduction#bootstrap
   // const config = new DocumentBuilder()
