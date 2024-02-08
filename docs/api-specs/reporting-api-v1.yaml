@@ -20,7 +20,7 @@ paths:
     get:
       security:
         - development:
-            - reporting_read
+          - reporting_read
       tags:
         - report
       summary: Return list of available Reports
@@ -44,7 +44,7 @@ paths:
     get:
       security:
         - development:
-            - reporting_read
+          - reporting_read
       tags:
         - report
       summary: Return report metadata by ID
@@ -78,7 +78,7 @@ paths:
     get:
       security:
         - development:
-            - reporting_read
+          - reporting_read
       tags:
         - report
       summary: Return all report calculations for a report
@@ -111,7 +111,7 @@ paths:
     post:
       security:
         - development:
-            - reporting_write
+          - reporting_write
       tags:
         - report
       summary: Trigger a new report calculation run.
@@ -157,7 +157,7 @@ paths:
     get:
       security:
         - development:
-            - reporting_read
+          - reporting_read
       tags:
         - report
       summary: Return metadata for a report calculation
@@ -193,7 +193,7 @@ paths:
     get:
       security:
         - development:
-            - reporting_read
+          - reporting_read
       tags:
         - report
       summary: Fetch actual report data for a specific calculation
@@ -232,7 +232,7 @@ paths:
     get:
       security:
         - development:
-            - reporting_read
+          - reporting_read
       tags:
         - notification
       summary: Return list of existing Webhooks
@@ -262,7 +262,7 @@ paths:
     get:
       security:
         - development:
-            - reporting_read
+          - reporting_read
       tags:
         - notification
       summary: Return a specific Webhook
@@ -302,7 +302,7 @@ paths:
     post:
       security:
         - development:
-            - reporting_write
+          - reporting_write
       tags:
         - notification
       summary: Subscribe to events for a specific Report
@@ -342,7 +342,7 @@ paths:
     delete:
       security:
         - development:
-            - reporting_write
+          - reporting_write
       tags:
         - notification
       summary: Remove event subscription for a specific Report
