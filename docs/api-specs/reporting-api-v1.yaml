@@ -2,8 +2,8 @@ openapi: 3.0.3
 info:
   title: Aam Digital - Reporting API
   description: |-
-    API to manage reports that provide data calculated based on any entities of the Aam Digital system.
-  version: 1.0.0-alpha.1
+    API to manage reports that provide data calculated based on any entities of the Aam Digital system and notifications.
+  version: 1.0.0-alpha.2
 servers:
   - url: https://{customerId}.aam-digital.net/api/v1/reporting
     description: Developer Instance for testing
@@ -13,13 +13,14 @@ servers:
         description: Customer ID assigned by the service provider
 tags:
   - name: report
+  - name: notification
 
 paths:
   /report:
     get:
       security:
         - development:
-          - reports_read
+            - reporting_read
       tags:
         - report
       summary: Return list of available Reports
@@ -34,12 +35,16 @@ paths:
                   $ref: '#/components/schemas/Report'
         401:
           description: If no valid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /report/{reportId}:
     get:
       security:
         - development:
-          - reports_read
+            - reporting_read
       tags:
         - report
       summary: Return report metadata by ID
@@ -58,14 +63,22 @@ paths:
                 $ref: '#/components/schemas/Report'
         404:
           description: If the Report does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         401:
           description: If the access token does not grant permission to this Report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /report-calculation/report/{reportId}:
     get:
       security:
         - development:
-          - reports_read
+            - reporting_read
       tags:
         - report
       summary: Return all report calculations for a report
@@ -84,13 +97,21 @@ paths:
                 $ref: '#/components/schemas/ReportCalculation'
         401:
           description: If the access token does not grant permission to this Report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: If report does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
     post:
       security:
         - development:
-          - reports_write
+            - reporting_write
       tags:
         - report
       summary: Trigger a new report calculation run.
@@ -127,12 +148,16 @@ paths:
                     format: uuid
         401:
           description: If the access token does not grant permission to this Report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /report-calculation/{calculationId}:
     get:
       security:
         - development:
-          - reports_read
+            - reporting_read
       tags:
         - report
       summary: Return metadata for a report calculation
@@ -153,14 +178,22 @@ paths:
                   $ref: '#/components/schemas/ReportCalculation'
         401:
           description: If the access token does not grant permission to this Report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         404:
           description: If the calculation identifier does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /report-calculation/{calculationId}/data:
     get:
       security:
         - development:
-          - reports_read
+            - reporting_read
       tags:
         - report
       summary: Fetch actual report data for a specific calculation
@@ -172,7 +205,7 @@ paths:
           required: true
       responses:
         200:
-          description: The actual data that has been calculated by the calculation run. This matches the schema defined in the /report/id 
+          description: The actual data that has been calculated by the calculation run. This matches the schema defined in the /report/id
           content:
             application/json:
               schema:
@@ -182,11 +215,167 @@ paths:
                 $ref: '#/components/schemas/ReportData'
         404:
           description: report data is not available yet (when either the calculation id is not valid or the calculation is still running)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         401:
           description: If the access token does not grant permission to this Report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # notification
+
+  /webhook:
+    get:
+      security:
+        - development:
+            - reporting_read
+      tags:
+        - notification
+      summary: Return list of existing Webhooks
+      responses:
+        200:
+          description: List of all available Webhooks the requester has created, empty array if no Webhooks are available
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Webhook'
+        401:
+          description: If no valid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: No permissions to access the resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /webhook/{webhookId}:
+    get:
+      security:
+        - development:
+            - reporting_read
+      tags:
+        - notification
+      summary: Return a specific Webhook
+      parameters:
+        - in: path
+          name: webhookId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Get details of a webhook, including details of subscribed events and configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        401:
+          description: If no valid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: No permissions to access the resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /webhook/{webhookId}/subscribe/report/{reportId}:
+    post:
+      security:
+        - development:
+            - reporting_write
+      tags:
+        - notification
+      summary: Subscribe to events for a specific Report
+      parameters:
+        - in: path
+          name: webhookId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: reportId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Report added to webhook subscription
+        401:
+          description: If no valid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: No permissions to access the resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      security:
+        - development:
+            - reporting_write
+      tags:
+        - notification
+      summary: Remove event subscription for a specific Report
+      parameters:
+        - in: path
+          name: webhookId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: eventName
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Report deleted from webhook subscription
+        401:
+          description: If no valid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        403:
+          description: No permissions to access the resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
+    # report
     Report:
       type: object
       properties:
@@ -240,6 +429,66 @@ components:
         data:
           type: object
 
+    # notification
+
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: wh_aam_digital_reporting
+        reportSubscriptions:
+          type: array
+          items:
+            type: string
+          example: [ "report_id_1", "report_id_2", "report_id_3" ]
+
+    WebhookConfiguration:
+      type: object
+      properties:
+        method:
+          type: string
+          enum:
+            - GET
+            - POST
+        targetUrl:
+          type: string
+        authenticationType:
+          type: string
+          enum:
+            - API_KEY
+        authentication:
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/ApiKeyAuthConfig'
+
+    ApiKeyAuthConfig:
+      type: object
+      properties:
+        key:
+          type: string
+        headerName:
+          type: string
+
+    # global
+
+    Error:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          items:
+            enum:
+              - NOT_FOUND
+              - UNAUTHORIZED
+              - FORBIDDEN
+              - INTERNAL_SERVER_ERROR
+        errorMessage:
+          type: string
+
   securitySchemes:
     development:
       type: oauth2
@@ -248,5 +497,5 @@ components:
         clientCredentials:
           tokenUrl: https://keycloak.aam-digital.net/realms/TolaData/protocol/openid-connect/token
           scopes:
-            reports_read: Read Report and ReportCalculation
-            reports_write: Trigger new ReportCalculation
+            reporting_read: Read Report and ReportCalculation
+            reporting_write: Trigger new ReportCalculation and configure webhook notifications
