@@ -21,7 +21,7 @@ jobs:
           file: ./build/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: aamdigital/query-ms:${{ GITHUB_REF_NAME }}
+          tags: aamdigital/query-ms:${{ env.GITHUB_REF_NAME }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
