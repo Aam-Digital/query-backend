@@ -213,7 +213,9 @@ components:
       properties:
         reportId:
           type: string
-        customerId:
+        reportCalculationId:
+          type: string
+        instanceName:
           type: string
 
     ApiKeyAuthConfig:
