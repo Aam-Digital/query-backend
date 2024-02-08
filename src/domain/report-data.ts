@@ -2,9 +2,12 @@ import { Reference } from './reference';
 import * as crypto from 'crypto';
 
 export class ReportData {
-  constructor(report: Reference, run: Reference) {
+  id: string;
+
+  constructor(id: string, report: Reference, calculation: Reference) {
+    this.id = id;
     this.report = report;
-    this.calculation = run;
+    this.calculation = calculation;
   }
 
   report: Reference;

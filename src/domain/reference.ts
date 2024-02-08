@@ -1,9 +1,7 @@
 export class Reference {
-  constructor(id: string, type: string | null = null) {
+  constructor(id: string) {
     this.id = id;
-    this.type = type;
   }
 
   id: string;
-  type: string | null;
 }

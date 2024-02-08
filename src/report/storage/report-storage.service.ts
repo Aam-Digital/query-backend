@@ -2,8 +2,8 @@ import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
 import { ReportStorage } from '../core/report-storage';
 import { ReportRepository } from '../repository/report-repository.service';
-import { map, Observable } from 'rxjs';
-import { Injectable } from '@nestjs/common';
+import { map, Observable, switchMap } from 'rxjs';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   ReportCalculation,
   ReportCalculationStatus,
@@ -111,7 +111,16 @@ export class DefaultReportStorage implements ReportStorage {
   ): Observable<ReportCalculation> {
     return this.reportCalculationRepository
       .storeCalculation(reportCalculation)
-      .pipe(map((entity) => entity));
+      .pipe(
+        switchMap((entity) => this.fetchCalculation(new Reference(entity.id))),
+        map((value) => {
+          if (!value) {
+            throw new NotFoundException();
+          } else {
+            return value;
+          }
+        }),
+      );
   }
 
   storeData(reportData: ReportData): Observable<ReportData> {

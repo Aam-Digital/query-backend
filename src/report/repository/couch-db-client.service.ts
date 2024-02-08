@@ -44,6 +44,25 @@ export class CouchDbClient {
       );
   }
 
+  find<T>(
+    databaseUrl: string,
+    databaseName: string,
+    body: any,
+    config?: any,
+  ): Observable<T> {
+    return this.httpService
+      .post<T>(`${databaseUrl}/${databaseName}/_find`, body, config)
+      .pipe(
+        map((response) => {
+          return response.data;
+        }),
+        catchError((err) => {
+          this.handleError(err);
+          throw err;
+        }),
+      );
+  }
+
   putDatabaseDocument<T>(
     databaseUrl: string,
     databaseName: string,

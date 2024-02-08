@@ -30,7 +30,7 @@ export class ReportController {
   }
   private getReportDto(report: Report): Observable<ReportDto> {
     return this.reportStorage
-      .isCalculationOngoing(new Reference(report.id, 'Report'))
+      .isCalculationOngoing(new Reference(report.id))
       .pipe(
         map(
           (value) =>

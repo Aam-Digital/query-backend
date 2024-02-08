@@ -28,15 +28,10 @@ export class ReportCalculationController {
       .storeCalculation(
         new ReportCalculation(
           `ReportCalculation:${uuidv4()}`,
-          new Reference(reportId, 'Report'),
+          new Reference(reportId),
         ),
       )
-      .pipe(
-        map(
-          (reportCalculation) =>
-            new Reference(reportCalculation.id, 'ReportCalculation'),
-        ),
-      );
+      .pipe(map((reportCalculation) => new Reference(reportCalculation.id)));
   }
 
   @Get('/report-calculation/report/:reportId')
