@@ -24,6 +24,10 @@ export class DefaultReportStorage implements ReportStorage {
   fetchAllReports(authToken: string): Observable<Report[]> {
     return this.reportRepository.fetchReports(authToken).pipe(
       map((response) => {
+        if (!response || !response.rows) {
+          return [];
+        }
+
         return response.rows.map((reportEntity) =>
           new Report(reportEntity.id, reportEntity.doc.title).setSchema(
             reportEntity.doc.aggregationDefinitions,

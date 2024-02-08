@@ -76,7 +76,7 @@ export class ReportCalculationRepository {
         params: {
           include_docs: true,
           start_key: '"ReportCalculation"',
-          end_key: '"ReportCalculation' + 'ufff0"', // ufff0 -> high value unicode character
+          end_key: '"ReportCalculation' + '\ufff0"', // ufff0 -> high value unicode character
         },
         headers: {
           Authorization: this.authHeaderValue,
@@ -172,7 +172,7 @@ export class ReportCalculationRepository {
             params: {
               include_docs: true,
               start_key: '"' + calculationId + '"',
-              end_key: '"ReportCalculation' + 'ufff0"', // ufff0 -> high value unicode character
+              end_key: '"ReportCalculation' + '\ufff0"', // ufff0 -> high value unicode character
             },
             headers: {
               Authorization: this.authHeaderValue,
