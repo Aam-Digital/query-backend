@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ReportCalculation } from '../../domain/report-calculation';
 import { Reference } from '../../domain/reference';
 import { ReportData } from '../../domain/report-data';
@@ -206,5 +211,17 @@ export class ReportCalculationRepository {
           );
       }),
     );
+  }
+
+  private handleError(err: any) {
+    if (err.response.status === 401) {
+      throw new UnauthorizedException();
+    }
+    if (err.response.status === 403) {
+      throw new ForbiddenException();
+    }
+    if (err.response.status === 404) {
+      throw new NotFoundException();
+    }
   }
 }

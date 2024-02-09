@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { catchError, map, Observable } from 'rxjs';
@@ -64,7 +69,7 @@ export class ReportRepository {
       .pipe(
         map((value) => value.data),
         catchError((err, caught) => {
-          console.log(err);
+          this.handleError(err);
           throw caught;
         }),
       );
@@ -80,9 +85,21 @@ export class ReportRepository {
       .pipe(
         map((value) => value.data),
         catchError((err, caught) => {
-          console.log(err);
+          this.handleError(err);
           throw caught;
         }),
       );
+  }
+
+  private handleError(err: any) {
+    if (err.response.status === 401) {
+      throw new UnauthorizedException();
+    }
+    if (err.response.status === 403) {
+      throw new ForbiddenException();
+    }
+    if (err.response.status === 404) {
+      throw new NotFoundException();
+    }
   }
 }
