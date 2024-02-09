@@ -238,10 +238,10 @@ paths:
           - reporting_read
       tags:
         - notification
-      summary: Return list of existing Webhooks
+      summary: Return list of existing Webhooks for your authorized client
       responses:
         200:
-          description: List of all available Webhooks the requester has created, empty array if no Webhooks are available
+          description: List of all available Webhooks the requester has created, empty array if no Webhooks are available for the client authorized in the given access token
           content:
             application/json:
               schema:
