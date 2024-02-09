@@ -119,7 +119,9 @@ paths:
         - report
       summary: Trigger a new report calculation run.
       description: Trigger a new report calculation run. Check status of the asynchronous calculation via the /report-calculation endpoint
-        (CURRENTLY UNDER DEVELOPMENT) optionally receive status updates via a webhook if that has been set up for the authorized client
+        As an alternative to triggering a single report calculation, you can subscribe to receive
+        a notification event (which includes an automatically created calculationId) whenever the report's
+        results change (see /webhook/{webhookId}/subscribe/report).
       parameters:
         - in: path
           name: reportId
@@ -476,6 +478,25 @@ components:
           type: string
         headerName:
           type: string
+
+    Event:
+      type: object
+      description: Representation of the payload we will send to the webhook
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventName:
+          type: string
+          enum:
+            - NEW_REPORT_DATA_AVAILABLE
+        reportId:
+          type: string
+        calculationId:
+          type: string
+        created_at:
+          type: string
+          format: date
 
     # global
 
