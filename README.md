@@ -57,7 +57,7 @@ This returns a JWT access token required to provided as Bearer Token for any req
 5. Once the status shows the calculation is completed, get the actual result data: `GET /report-calculation/<calculation-id>/data`
 
 
-## Subscribe to continous changes of a report
+## Subscribe to continuous changes of a report
 1. Create an initial webhook (if not already registered): `POST /webhook`
 2. Register for events of the selected report: `POST /webhook/{webhookId}/subscribe/report/{reportId}:`
 3. You will receive Event objects to your webhook, including an initial event directly after you subscribe, pointing to the current report data
