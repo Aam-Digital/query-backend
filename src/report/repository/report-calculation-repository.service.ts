@@ -208,6 +208,10 @@ export class ReportCalculationRepository {
                 throw new NotFoundException();
               }
             }),
+            catchError((err, caught) => {
+              this.handleError(err);
+              throw err;
+            }),
           );
       }),
     );
