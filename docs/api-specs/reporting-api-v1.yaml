@@ -14,7 +14,9 @@ servers:
         description: Customer ID assigned by the service provider
 tags:
   - name: report
+    description: Access reports and their results and trigger one-time report calculations.
   - name: notification
+    description: Subscribe to continuous notification events whenever a report's result data changes due to users changing records in the Aam Digital application.
 
 paths:
   /report:
