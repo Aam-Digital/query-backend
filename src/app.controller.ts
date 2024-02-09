@@ -19,6 +19,8 @@ export class AppController {
   private dbUrl = this.configService.get('DATABASE_URL');
   private queryUrl = this.configService.get('QUERY_URL');
   private schemaDocId = this.configService.get('SCHEMA_CONFIG_ID');
+  private couchAdmin = this.configService.get('COUCHDB_ADMIN');
+  private couchPassword = this.configService.get('COUCHDB_PASSWORD');
   constructor(
     private http: HttpService,
     private configService: ConfigService,
@@ -82,7 +84,9 @@ export class AppController {
       data.args = [args.from, args.to];
     }
     return this.http
-      .post<any[]>(`${this.queryUrl}/${db}/${this.schemaDocId}`, data)
+      .post<any[]>(`${this.queryUrl}/${db}/${this.schemaDocId}`, data, {
+        auth: { username: this.couchAdmin, password: this.couchPassword },
+      })
       .pipe(map(({ data }) => data));
   }
 }
