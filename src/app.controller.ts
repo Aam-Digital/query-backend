@@ -19,12 +19,13 @@ export class AppController {
   private dbUrl = this.configService.get('DATABASE_URL');
   private queryUrl = this.configService.get('QUERY_URL');
   private schemaDocId = this.configService.get('SCHEMA_CONFIG_ID');
+  private couchAdmin = this.configService.get('DATABASE_ADMIN');
+  private couchPassword = this.configService.get('DATABASE_PASSWORD');
   constructor(
     private http: HttpService,
     private configService: ConfigService,
   ) {}
 
-  // TODO also support cookie auth? Not really required with Keycloak
   @ApiOperation({
     description: `Get the results for the report with the given ID. User needs 'read' access for the requested report entity.`,
   })
@@ -78,11 +79,14 @@ export class AppController {
 
   private getQueryResult(query: string, args: QueryBody, db: string) {
     const data: SqsRequest = { query: query };
-    if (args?.from && args?.to) {
+    // There needs to be the same amount of "?" in the query as elements in "args"
+    if (args?.from && args?.to && query.match(/\?/g)?.length === 2) {
       data.args = [args.from, args.to];
     }
     return this.http
-      .post<any[]>(`${this.queryUrl}/${db}/${this.schemaDocId}`, data)
+      .post<any[]>(`${this.queryUrl}/${db}/${this.schemaDocId}`, data, {
+        auth: { username: this.couchAdmin, password: this.couchPassword },
+      })
       .pipe(map(({ data }) => data));
   }
 }
