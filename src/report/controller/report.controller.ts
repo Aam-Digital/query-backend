@@ -1,5 +1,12 @@
 import { Controller, Get, Headers, Param } from '@nestjs/common';
-import { map, mergeMap, Observable, switchMap, zipAll } from 'rxjs';
+import {
+  defaultIfEmpty,
+  map,
+  mergeMap,
+  Observable,
+  switchMap,
+  zipAll,
+} from 'rxjs';
 import { DefaultReportStorage } from '../storage/report-storage.service';
 import { ReportDto } from './dtos';
 import { Reference } from '../../domain/reference';
@@ -16,6 +23,7 @@ export class ReportController {
     return this.reportStorage.fetchAllReports(token).pipe(
       mergeMap((reports) => reports.map((report) => this.getReportDto(report))),
       zipAll(),
+      defaultIfEmpty([]),
     );
   }
 
