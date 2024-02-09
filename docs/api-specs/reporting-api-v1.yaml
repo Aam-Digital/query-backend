@@ -311,6 +311,7 @@ paths:
       tags:
         - notification
       summary: Subscribe to events for a specific Report
+      description: If you subscribe to a reportId, Aam Digital will continuously monitor the changes users make in the application and check if they affect the results calculcated by that report. Whenever this is the case, a new report-calculation is automatically triggered for you and once the calculation is completed you receive an event containing that calculationId. You can use this to immediately fetch to available report data from the /report-calculation/{calculationId}/data endpoint. Upon subscribing to a report, you will always receive an initial event with a calculationId through which you can access the current state of the report's data.
       parameters:
         - in: path
           name: webhookId
