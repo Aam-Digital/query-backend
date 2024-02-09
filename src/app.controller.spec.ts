@@ -1,6 +1,6 @@
 import { AppController } from './app.controller';
 import { Test, TestingModule } from '@nestjs/testing';
-import { of, throwError } from 'rxjs';
+import { firstValueFrom, of, throwError } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import { SqlReport } from './sql-report';
@@ -13,6 +13,7 @@ describe('AppController', () => {
   const dbUrl = 'database:3000';
   const queryUrl = 'query:3000';
   const schemaConfigId = '_design/sqlite:config';
+  const adminAuth = { username: 'admin', password: 'adminPW' };
 
   beforeEach(async () => {
     mockHttp = {
@@ -28,6 +29,10 @@ describe('AppController', () => {
             return queryUrl;
           case 'SCHEMA_CONFIG_ID':
             return schemaConfigId;
+          case 'COUCHDB_ADMIN':
+            return adminAuth.username;
+          case 'COUCHDB_PASSWORD':
+            return adminAuth.password;
           default:
             throw Error('missing mock value for ' + key);
         }
@@ -67,6 +72,7 @@ describe('AppController', () => {
         expect(mockHttp.post).toHaveBeenCalledWith(
           `${queryUrl}/app/${schemaConfigId}`,
           { query: report.aggregationDefinitions[0] },
+          { auth: adminAuth },
         );
         expect(res).toEqual(queryResult);
 
@@ -74,28 +80,42 @@ describe('AppController', () => {
       });
   });
 
-  it('should add dates as args to query request', (done) => {
+  it('should add dates as args to query request if "?" is used', async () => {
     const report: SqlReport = {
       mode: 'sql',
-      aggregationDefinitions: [
-        'SELECT * FROM Note WHERE e.date BETWEEN ? AND  ?',
-      ],
+      aggregationDefinitions: [],
     };
     mockHttp.get.mockReturnValue(of({ data: report }));
     const body: QueryBody = { from: '2023-01-01', to: '2024-01-01' };
 
-    controller
-      .queryData('ReportConfig:some-id', 'app', 'valid token', body)
-      .subscribe(() => {
-        expect(mockHttp.post).toHaveBeenCalledWith(
-          `${queryUrl}/app/${schemaConfigId}`,
-          {
-            query: report.aggregationDefinitions[0],
-            args: [body.from, body.to],
-          },
-        );
-        done();
-      });
+    // No "?" in query
+    report.aggregationDefinitions = ['SELECT * FROM Note'];
+    await firstValueFrom(
+      controller.queryData('ReportConfig:some-id', 'app', 'valid token', body),
+    );
+    expect(mockHttp.post).toHaveBeenCalledWith(
+      `${queryUrl}/app/${schemaConfigId}`,
+      {
+        query: report.aggregationDefinitions[0],
+      },
+      { auth: adminAuth },
+    );
+
+    // two "?" in query
+    report.aggregationDefinitions = [
+      'SELECT * FROM Note WHERE e.date BETWEEN ? AND  ?',
+    ];
+    await firstValueFrom(
+      controller.queryData('ReportConfig:some-id', 'app', 'valid token', body),
+    );
+    expect(mockHttp.post).toHaveBeenCalledWith(
+      `${queryUrl}/app/${schemaConfigId}`,
+      {
+        query: report.aggregationDefinitions[0],
+        args: [body.from, body.to],
+      },
+      { auth: adminAuth },
+    );
   });
 
   it('should concatenate the result of multiple SELECT queries', (done) => {
@@ -116,10 +136,12 @@ describe('AppController', () => {
         expect(mockHttp.post).toHaveBeenCalledWith(
           `${queryUrl}/app/${schemaConfigId}`,
           { query: report.aggregationDefinitions[0] },
+          { auth: adminAuth },
         );
         expect(mockHttp.post).toHaveBeenCalledWith(
           `${queryUrl}/app/${schemaConfigId}`,
           { query: report.aggregationDefinitions[1] },
+          { auth: adminAuth },
         );
         expect(res).toEqual([...firstResult, ...secondResult]);
 
