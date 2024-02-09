@@ -58,8 +58,7 @@ export class ReportRepository {
           endkey: '"ReportConfig:' + '\ufff0"',
         },
         headers: {
-          // Authorization: authToken,
-          Authorization: this.authHeaderValue,
+          Authorization: authToken,
         },
       })
       .pipe(
@@ -75,8 +74,7 @@ export class ReportRepository {
     return this.http
       .get<ReportDoc>(`${this.dbUrl}/app/${reportId}`, {
         headers: {
-          // Authorization: authToken,
-          Authorization: this.authHeaderValue,
+          Authorization: authToken,
         },
       })
       .pipe(
