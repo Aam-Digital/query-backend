@@ -444,6 +444,7 @@ components:
           type: string
           example: wh_aam_digital_reporting
         reportSubscriptions:
+          description: The reports for which the webhook will receive a notification event whenever their results change due to users managing data in the Aam Digital system.
           type: array
           items:
             type: string
