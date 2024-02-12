@@ -7,7 +7,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { DefaultReportStorage } from '../storage/report-storage.service';
-import { map, Observable } from 'rxjs';
+import { map, Observable, switchMap } from 'rxjs';
 import { ReportCalculation } from '../../domain/report-calculation';
 import { Reference } from '../../domain/reference';
 import { ReportData } from '../../domain/report-data';
@@ -22,16 +22,24 @@ export class ReportCalculationController {
     @Headers('Authorization') token: string,
     @Param('reportId') reportId: string,
   ): Observable<Reference> {
-    // todo auth check -> try to fetch report
+    return this.reportStorage.fetchReport(token, new Reference(reportId)).pipe(
+      switchMap((value) => {
+        if (!value) {
+          throw new NotFoundException();
+        }
 
-    return this.reportStorage
-      .storeCalculation(
-        new ReportCalculation(
-          `ReportCalculation:${uuidv4()}`,
-          new Reference(reportId),
-        ),
-      )
-      .pipe(map((reportCalculation) => new Reference(reportCalculation.id)));
+        return this.reportStorage
+          .storeCalculation(
+            new ReportCalculation(
+              `ReportCalculation:${uuidv4()}`,
+              new Reference(reportId),
+            ),
+          )
+          .pipe(
+            map((reportCalculation) => new Reference(reportCalculation.id)),
+          );
+      }),
+    );
   }
 
   @Get('/report-calculation/report/:reportId')
@@ -50,11 +58,22 @@ export class ReportCalculationController {
     return this.reportStorage
       .fetchCalculation(new Reference(calculationId))
       .pipe(
-        map((value) => {
-          if (!value) {
+        switchMap((calculation) => {
+          if (!calculation) {
             throw new NotFoundException();
           }
-          return value;
+
+          return this.reportStorage
+            .fetchReport(token, new Reference(calculation.report.id))
+            .pipe(
+              map((report) => {
+                if (!report) {
+                  throw new NotFoundException();
+                }
+
+                return calculation;
+              }),
+            );
         }),
       );
   }
