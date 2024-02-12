@@ -35,6 +35,8 @@ COPY --from=builder /app/dist ./dist
 ENV SENTRY_DSN=""
 ENV PORT=""
 ENV DATABASE_URL=""
+ENV DATABASE_ADMIN=""
+ENV DATABASE_PASSWORD=""
 ENV QUERY_URL=""
 
 CMD ["node", "dist/main"]
