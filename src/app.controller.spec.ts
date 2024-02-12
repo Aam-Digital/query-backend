@@ -21,7 +21,7 @@ describe('AppController', () => {
       get: jest.fn().mockReturnValue(of({ data: undefined })),
     };
     const mockConfigService = {
-      get: (key) => {
+      getOrThrow: (key) => {
         switch (key) {
           case 'DATABASE_URL':
             return dbUrl;

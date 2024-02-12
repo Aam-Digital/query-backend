@@ -16,11 +16,11 @@ import { QueryBody } from './query-body.dto';
 
 @Controller('report')
 export class AppController {
-  private dbUrl = this.configService.get('DATABASE_URL');
-  private queryUrl = this.configService.get('QUERY_URL');
-  private schemaDocId = this.configService.get('SCHEMA_CONFIG_ID');
-  private couchAdmin = this.configService.get('DATABASE_ADMIN');
-  private couchPassword = this.configService.get('DATABASE_PASSWORD');
+  private dbUrl = this.configService.getOrThrow('DATABASE_URL');
+  private queryUrl = this.configService.getOrThrow('QUERY_URL');
+  private schemaDocId = this.configService.getOrThrow('SCHEMA_CONFIG_ID');
+  private couchAdmin = this.configService.getOrThrow('DATABASE_ADMIN');
+  private couchPassword = this.configService.getOrThrow('DATABASE_PASSWORD');
   constructor(
     private http: HttpService,
     private configService: ConfigService,

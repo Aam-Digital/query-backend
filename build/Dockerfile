@@ -30,6 +30,7 @@ COPY package*.json ./
 RUN npm ci --no-progress --only=production
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/.env ./
 
 # (optional) The sentry DSN in order to send the error messages to sentry
 ENV SENTRY_DSN=""
