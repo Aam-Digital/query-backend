@@ -13,7 +13,9 @@ interface ReportDoc {
   _id: string;
   _rev: string;
   title: string;
-  aggregationDefinitions: string[];
+  aggregationDefinitions: {
+    fields: string[];
+  };
   created: {
     at: string;
     by: string;
