@@ -10,7 +10,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { ApiHeader, ApiOperation, ApiParam } from '@nestjs/swagger';
-import { catchError, concat, map, mergeMap, toArray } from 'rxjs';
+import { catchError, concat, map, mergeMap, Observable, toArray } from 'rxjs';
 import { SqlReport } from './sql-report';
 import { QueryBody } from './query-body.dto';
 
@@ -73,11 +73,15 @@ export class AppController {
     ).pipe(
       // combine results of each request
       toArray(),
-      map((res) => [].concat(...res)),
+      map((res) => res.flat()),
     );
   }
 
-  private getQueryResult(query: string, args: QueryBody, db: string) {
+  private getQueryResult(
+    query: string,
+    args: QueryBody | undefined,
+    db: string,
+  ): Observable<any[]> {
     const data: SqsRequest = { query: query };
     // There needs to be the same amount of "?" in the query as elements in "args"
     if (args?.from && args?.to && query.match(/\?/g)?.length === 2) {

@@ -24,7 +24,7 @@ export interface ReportCalculationEntity {
 export interface FetchReportCalculationsResponse {
   total_rows: number;
   offset: number;
-  rows: ReportCalculationEntity[]; // todo use Entity -- remove null values
+  rows: ReportCalculationEntity[];
 }
 
 @Injectable()
@@ -208,7 +208,7 @@ export class ReportCalculationRepository {
                 throw new NotFoundException();
               }
             }),
-            catchError((err, caught) => {
+            catchError((err) => {
               this.handleError(err);
               throw err;
             }),

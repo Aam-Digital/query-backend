@@ -5,10 +5,8 @@ import { ReportCalculation } from '../../domain/report-calculation';
 import { ReportData } from '../../domain/report-data';
 
 export interface ReportStorage {
-  // todo: non domain object in parameter
   fetchAllReports(authToken: string): Observable<Report[]>;
 
-  // todo: non domain object in parameter
   fetchReport(
     authToken: string,
     reportRef: Reference,
