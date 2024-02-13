@@ -13,6 +13,7 @@ interface ReportDoc {
   _id: string;
   _rev: string;
   title: string;
+  mode: string;
   aggregationDefinitions: {
     fields: string[];
   };

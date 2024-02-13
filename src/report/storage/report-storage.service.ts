@@ -21,18 +21,20 @@ export class DefaultReportStorage implements ReportStorage {
     private reportCalculationRepository: ReportCalculationRepository,
   ) {}
 
-  fetchAllReports(authToken: string): Observable<Report[]> {
+  fetchAllReports(authToken: string, mode = 'sql'): Observable<Report[]> {
     return this.reportRepository.fetchReports(authToken).pipe(
       map((response) => {
         if (!response || !response.rows) {
           return [];
         }
 
-        return response.rows.map((reportEntity) =>
-          new Report(reportEntity.id, reportEntity.doc.title).setSchema(
-            reportEntity.doc.aggregationDefinitions,
-          ),
-        );
+        return response.rows
+          .filter((row) => row.doc.mode === mode)
+          .map((reportEntity) =>
+            new Report(reportEntity.id, reportEntity.doc.title).setSchema(
+              reportEntity.doc.aggregationDefinitions,
+            ),
+          );
       }),
     );
   }

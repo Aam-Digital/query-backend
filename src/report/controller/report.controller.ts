@@ -20,7 +20,7 @@ export class ReportController {
   fetchReports(
     @Headers('Authorization') token: string,
   ): Observable<ReportDto[]> {
-    return this.reportStorage.fetchAllReports(token).pipe(
+    return this.reportStorage.fetchAllReports(token, 'sql').pipe(
       mergeMap((reports) => reports.map((report) => this.getReportDto(report))),
       zipAll(),
       defaultIfEmpty([]),

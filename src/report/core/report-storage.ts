@@ -5,7 +5,7 @@ import { ReportCalculation } from '../../domain/report-calculation';
 import { ReportData } from '../../domain/report-data';
 
 export interface ReportStorage {
-  fetchAllReports(authToken: string): Observable<Report[]>;
+  fetchAllReports(authToken: string, mode: string): Observable<Report[]>;
 
   fetchReport(
     authToken: string,

@@ -1,3 +1,6 @@
+/**
+ * This is the interface shared to external users of the API endpoints.
+ */
 export class ReportDto {
   constructor(
     id: string,
