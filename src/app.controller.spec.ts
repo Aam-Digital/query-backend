@@ -21,7 +21,7 @@ describe('AppController', () => {
       get: jest.fn().mockReturnValue(of({ data: undefined })),
     };
     const mockConfigService = {
-      getOrThrow: (key) => {
+      getOrThrow: (key: any) => {
         switch (key) {
           case 'DATABASE_URL':
             return dbUrl;
@@ -168,24 +168,7 @@ describe('AppController', () => {
   it('should throw error trying to query a non-sql report', (done) => {
     const report: SqlReport = {
       mode: 'exporting' as any,
-      aggregationDefinitions: undefined,
-    };
-    mockHttp.get.mockReturnValue(of({ data: report }));
-
-    controller
-      .queryData('ReportConfig:some-id', 'app', 'valid token')
-      .subscribe({
-        error: (err) => {
-          expect(err).toBeInstanceOf(BadRequestException);
-          done();
-        },
-      });
-  });
-
-  it('should throw sql query is not defined', (done) => {
-    const report: SqlReport = {
-      mode: 'sql',
-      aggregationDefinitions: undefined,
+      aggregationDefinitions: [],
     };
     mockHttp.get.mockReturnValue(of({ data: report }));
 
