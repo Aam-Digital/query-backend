@@ -14,9 +14,7 @@ interface ReportDoc {
   _rev: string;
   title: string;
   mode: string;
-  aggregationDefinitions: {
-    fields: string[];
-  };
+  aggregationDefinitions: string[];
   created: {
     at: string;
     by: string;

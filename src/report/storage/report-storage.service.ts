@@ -31,9 +31,9 @@ export class DefaultReportStorage implements ReportStorage {
         return response.rows
           .filter((row) => row.doc.mode === mode)
           .map((reportEntity) =>
-            new Report(reportEntity.id, reportEntity.doc.title).setSchema(
-              reportEntity.doc.aggregationDefinitions,
-            ),
+            new Report(reportEntity.id, reportEntity.doc.title).setSchema({
+              fields: reportEntity.doc.aggregationDefinitions, // todo generate actual fields here
+            }),
           );
       }),
     );
@@ -42,9 +42,9 @@ export class DefaultReportStorage implements ReportStorage {
   fetchReport(authToken: string, reportRef: Reference): Observable<Report> {
     return this.reportRepository.fetchReport(authToken, reportRef.id).pipe(
       map((reportDoc) => {
-        return new Report(reportDoc._id, reportDoc.title).setSchema(
-          reportDoc.aggregationDefinitions,
-        );
+        return new Report(reportDoc._id, reportDoc.title).setSchema({
+          fields: reportDoc.aggregationDefinitions, // todo generate actual fields here
+        });
       }),
     );
   }
