@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { ApiHeader, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { catchError, concat, map, mergeMap, Observable, toArray } from 'rxjs';
 import { SqlReport } from './sql-report';
 import { QueryBody } from './query-body.dto';
@@ -26,16 +25,6 @@ export class AppController {
     private configService: ConfigService,
   ) {}
 
-  @ApiOperation({
-    description: `Get the results for the report with the given ID. User needs 'read' access for the requested report entity.`,
-  })
-  @ApiParam({ name: 'id', description: '(full) ID of the report entity' })
-  @ApiParam({ name: 'db', example: 'app', description: 'name of database' })
-  @ApiHeader({
-    name: 'Authorization',
-    required: false,
-    description: 'request needs to be authenticated',
-  })
   @Post(':db/:id')
   queryData(
     @Param('id') reportId: string,
