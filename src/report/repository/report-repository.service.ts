@@ -13,7 +13,7 @@ interface ReportDoc {
   _id: string;
   _rev: string;
   title: string;
-  aggregationDefinitions: any; // TODO better typing
+  aggregationDefinitions: string[];
   created: {
     at: string;
     by: string;
