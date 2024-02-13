@@ -1,3 +1,12 @@
+export interface CouchDbRow<T> {
+  id: string;
+  key: string;
+  value: {
+    rev: string;
+  };
+  doc: T;
+}
+
 export class DocSuccess {
   ok: boolean;
   id: string;

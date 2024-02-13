@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReportCalculationProcessor } from './report-calculation-processor.service';
 import { DefaultReportStorage } from '../storage/report-storage.service';
 import { HttpModule } from '@nestjs/axios';
-import { CouchDbClient } from '../repository/couch-db-client.service';
+import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 import { ReportCalculationTask } from './report-calculation-task.service';
 import { SqsReportCalculator } from '../core/sqs-report-calculator.service';
 import { ReportRepository } from '../repository/report-repository.service';

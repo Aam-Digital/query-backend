@@ -8,7 +8,7 @@ import { ReportCalculationController } from './controller/report-calculation.con
 import { ReportCalculationTask } from './tasks/report-calculation-task.service';
 import { ReportCalculationProcessor } from './tasks/report-calculation-processor.service';
 import { SqsReportCalculator } from './core/sqs-report-calculator.service';
-import { CouchDbClient } from './repository/couch-db-client.service';
+import { CouchDbClient } from '../couchdb/couch-db-client.service';
 
 @Module({
   controllers: [ReportController, ReportCalculationController],

@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { ReportRepository } from '../repository/report-repository.service';
 import { ReportCalculationRepository } from '../repository/report-calculation-repository.service';
 import { HttpModule } from '@nestjs/axios';
-import { CouchDbClient } from '../repository/couch-db-client.service';
+import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 
 describe('ReportCalculationTaskService', () => {
   let service: ReportCalculationTask;

@@ -5,7 +5,7 @@ import { ReportRepository } from '../repository/report-repository.service';
 import { ReportCalculationRepository } from '../repository/report-calculation-repository.service';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { CouchDbClient } from '../repository/couch-db-client.service';
+import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 
 describe('DefaultReportStorage', () => {
   let service: ReportStorage;

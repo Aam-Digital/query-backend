@@ -1,6 +1,12 @@
 import { Reference } from './reference';
 import * as crypto from 'crypto';
 
+/**
+ * The actual result of a ReportCalculation.
+ *
+ * @field data Final format is described by the ReportSchema
+ *  linked in the related Report.
+ */
 export class ReportData {
   id: string;
 

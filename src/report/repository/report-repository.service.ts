@@ -7,15 +7,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { catchError, map, Observable } from 'rxjs';
-
-interface ReportEntity {
-  id: string;
-  key: string;
-  value: {
-    rev: string;
-  };
-  doc: ReportDoc;
-}
+import { CouchDbRow } from '../../couchdb/dtos';
 
 interface ReportDoc {
   _id: string;
@@ -35,7 +27,7 @@ interface ReportDoc {
 interface FetchReportsResponse {
   total_rows: number;
   offset: number;
-  rows: ReportEntity[];
+  rows: CouchDbRow<ReportDoc>[];
 }
 
 @Injectable()

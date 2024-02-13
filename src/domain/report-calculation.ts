@@ -20,6 +20,10 @@ export interface ReportCalculationOutcomeError {
   errorMessage: string;
 }
 
+/**
+ * A ReportCalculation represents a calculation run for a specific Report.
+ * A Report can have multiple ReportCalculations.
+ */
 export class ReportCalculation {
   id: string;
   report: Reference;

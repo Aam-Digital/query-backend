@@ -9,8 +9,8 @@ import { Reference } from '../../domain/reference';
 import { ReportData } from '../../domain/report-data';
 import { catchError, map, Observable, switchMap } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
-import { CouchDbClient } from './couch-db-client.service';
-import { DocSuccess, FindResponse } from './dtos';
+import { CouchDbClient } from '../../couchdb/couch-db-client.service';
+import { DocSuccess, FindResponse } from '../../couchdb/dtos';
 
 export interface ReportCalculationEntity {
   id: string;

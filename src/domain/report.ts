@@ -1,7 +1,14 @@
+/**
+ * Defines the expected format of a ReportData
+ */
 export interface ReportSchema {
   fields: { [key: string]: any };
 }
 
+/**
+ * Representation of a user configured data export.
+ * The expected format of related ReportData will match with the ReportSchema.
+ */
 export class Report {
   id: string;
   name: string;
