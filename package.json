@@ -27,7 +27,6 @@
     "@nestjs/core": "^9.3.10",
     "@nestjs/platform-express": "^9.3.10",
     "@nestjs/schedule": "4.0.0",
-    "@nestjs/swagger": "^6.3.0",
     "@ntegral/nestjs-sentry": "^4.0.0",
     "@sentry/node": "^7.38.0",
     "reflect-metadata": "^0.1.13",
