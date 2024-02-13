@@ -1,15 +1,10 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException, } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { catchError, map, Observable } from 'rxjs';
 import { CouchDbRow } from '../../couchdb/dtos';
 
-interface ReportDoc {
+export interface ReportDoc {
   _id: string;
   _rev: string;
   title: string;
