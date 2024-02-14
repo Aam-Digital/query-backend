@@ -2,14 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { AxiosHeaders } from 'axios';
-import { CouchDbChangesResponse } from "./dtos";
+import { CouchDbChangesResponse } from './dtos';
 
-@Injectable()
+@Injectable({})
 export class CouchDbClient {
   private readonly logger = new Logger(CouchDbClient.name);
 
-  constructor(private httpService: HttpService) {
-  }
+  constructor(private httpService: HttpService) {}
 
   headDatabaseDocument(
     databaseUrl: string,
@@ -121,14 +120,16 @@ export class CouchDbClient {
     this.logger.debug(err);
   }
 
-
   changes(
     databaseUrl: string,
     databaseName: string,
     config?: any,
   ): Observable<CouchDbChangesResponse> {
     return this.httpService
-      .get<CouchDbChangesResponse>(`${databaseUrl}/${databaseName}/_changes`, config)
+      .get<CouchDbChangesResponse>(
+        `${databaseUrl}/${databaseName}/_changes`,
+        config,
+      )
       .pipe(
         map((response) => {
           return response.data;

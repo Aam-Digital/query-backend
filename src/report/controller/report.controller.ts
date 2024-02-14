@@ -34,8 +34,9 @@ export class ReportController {
   ): Observable<ReportDto> {
     return this.reportStorage
       .fetchReport(new Reference(reportId), token)
-      .pipe(switchMap((report) => this.getReportDto(report)));
+      .pipe(switchMap((report) => this.getReportDto(report as any))); // TODO: fix for undefined report
   }
+
   private getReportDto(report: Report): Observable<ReportDto> {
     return this.reportStorage
       .isCalculationOngoing(new Reference(report.id))

@@ -22,5 +22,6 @@ import { CouchDbClient } from '../couchdb/couch-db-client.service';
     SqsReportCalculator,
     CouchDbClient,
   ],
+  exports: [DefaultReportStorage],
 })
 export class ReportModule {}
