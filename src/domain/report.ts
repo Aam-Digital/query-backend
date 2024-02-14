@@ -12,6 +12,7 @@ export interface ReportSchema {
 export class Report {
   id: string;
   name: string;
+  mode: string | undefined;
   schema: ReportSchema | undefined;
   queries: string[];
 
@@ -23,6 +24,11 @@ export class Report {
 
   setId(id: string): Report {
     this.id = id;
+    return this;
+  }
+
+  setMode(mode: string): Report {
+    this.mode = mode;
     return this;
   }
 

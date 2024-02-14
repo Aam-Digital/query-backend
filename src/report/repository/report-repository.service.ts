@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { catchError, map, Observable } from 'rxjs';
 import { CouchDbRow } from '../../couchdb/dtos';
 
-interface Report {
+interface ReportDoc {
   _id: string;
   _rev: string;
   title: string;
@@ -28,7 +28,7 @@ interface Report {
 interface FetchReportsResponse {
   total_rows: number;
   offset: number;
-  rows: CouchDbRow<Report>[];
+  rows: CouchDbRow<ReportDoc>[];
 }
 
 @Injectable()
@@ -68,9 +68,9 @@ export class ReportRepository {
       );
   }
 
-  fetchReport(authToken: string, reportId: string): Observable<Report> {
+  fetchReport(authToken: string, reportId: string): Observable<ReportDoc> {
     return this.http
-      .get<Report>(`${this.dbUrl}/app/${reportId}`, {
+      .get<ReportDoc>(`${this.dbUrl}/app/${reportId}`, {
         headers: {
           Authorization: authToken,
         },

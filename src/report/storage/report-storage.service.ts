@@ -45,13 +45,13 @@ export class DefaultReportStorage implements ReportStorage {
 
   fetchReport(authToken: string, reportRef: Reference): Observable<Report> {
     return this.reportRepository.fetchReport(authToken, reportRef.id).pipe(
-      map((reportDoc) => {
+      map((report) => {
         return new Report(
-          reportDoc._id,
-          reportDoc.title,
-          reportDoc.aggregationDefinitions,
+          report._id,
+          report.title,
+          report.aggregationDefinitions,
         ).setSchema({
-          fields: reportDoc.aggregationDefinitions, // todo generate actual fields here
+          fields: report.aggregationDefinitions, // todo generate actual fields here
         });
       }),
     );

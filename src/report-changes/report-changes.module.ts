@@ -1,10 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ReportChangesService } from "./report-changes.service";
+import { CouchdbReportChangesService } from './core/couchdb-report-changes.service';
 
 @Module({
-  providers: [
-    ReportChangesService
-  ],
+  providers: [CouchdbReportChangesService],
 })
-export class ReportChangesModule {
-}
+export class ReportChangesModule {}

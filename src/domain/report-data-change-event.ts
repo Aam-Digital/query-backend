@@ -1,7 +1,7 @@
-import { Reference } from "./reference";
+import { Reference } from './reference';
 
 /**
- * Used as notification that a report's calculated results have changed, due to updates in the underlying database.
+ * Used as core that a report's calculated results have changed, due to updates in the underlying database.
  */
 export interface ReportDataChangeEvent {
   /** The report for which data has changed */

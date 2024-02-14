@@ -1,5 +1,5 @@
 import { EntityDoc, ReportChangeDetector } from './report-change.detector';
-import { Report } from '../../report/repository/report-repository.service';
+import { Report } from '../../domain/report';
 
 describe('ReportChangeDetectorService', () => {
   function testReportChangeDetection(
@@ -7,9 +7,9 @@ describe('ReportChangeDetectorService', () => {
     testCases: [EntityDoc, boolean][],
   ) {
     const report: Partial<Report> = {
-      _id: 'test-report-id',
+      id: 'test-report-id',
       mode: 'sql',
-      aggregationDefinitions: [sqlStatement],
+      queries: [sqlStatement],
     };
     const service = new ReportChangeDetector(report as Report);
 
