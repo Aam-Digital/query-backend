@@ -4,14 +4,14 @@ import { NotificationService } from '../../notification/core/notification.servic
 import { Reference } from '../../domain/reference';
 import { ReportDataChangeEvent } from '../../domain/report-data-change-event';
 import { ReportCalculation } from '../../domain/report-calculation';
-import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 import {
   CouchDbChangeResult,
   CouchDbChangesResponse,
 } from '../../couchdb/dtos';
 import { Report } from '../../domain/report';
 import { ReportChangesService } from './report-changes.service';
-import { ReportStorage } from '../../report/core/report-storage';
+import { CouchdbChangesRepositoryService } from '../repository/couchdb-changes-repository.service';
+import { DefaultReportStorage } from '../../report/storage/report-storage.service';
 
 @Injectable()
 export class CouchdbReportChangesService implements ReportChangesService {
@@ -19,12 +19,11 @@ export class CouchdbReportChangesService implements ReportChangesService {
 
   constructor(
     private notificationService: NotificationService,
-    private reportStorage: ReportStorage,
-    private couchDbClient: CouchDbClient,
+    private reportStorage: DefaultReportStorage,
+    private couchdbChangesRepository: CouchdbChangesRepositoryService,
   ) {
-    // (!) TODO: where to get databaseUrl and databaseName from? Can we centralize this ...?
-    this.couchDbClient
-      .changes('TODO', 'app')
+    this.couchdbChangesRepository
+      .fetchChanges()
       .subscribe((changes: CouchDbChangesResponse) => {
         // TODO: ensure continued fetching until all changes done
         // TODO: collect a batch of changes for a while before checking?

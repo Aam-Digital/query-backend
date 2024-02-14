@@ -4,7 +4,7 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosHeaders } from 'axios';
 import { CouchDbChangesResponse } from './dtos';
 
-@Injectable()
+@Injectable({})
 export class CouchDbClient {
   private readonly logger = new Logger(CouchDbClient.name);
 
