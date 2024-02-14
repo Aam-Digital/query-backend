@@ -22,4 +22,18 @@ export class NotificationService {
    * Trigger a core event for the given report to any active subscribers.
    */
   triggerNotification(event: ReportDataChangeEvent): void {}
+
+  registerForReportEvents(
+    webhook: Reference,
+    report: Reference,
+  ): Observable<void> {
+    return of();
+  }
+
+  unregisterForReportEvents(
+    webhook: Reference,
+    report: Reference,
+  ): Observable<void> {
+    return of();
+  }
 }
