@@ -1,26 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { ReportChangeDetector } from './report-change-detector/report-change.detector';
+import { ReportChangeDetector } from './report-change.detector';
+import { NotificationService } from '../../notification/core/notification.service';
+import { Reference } from '../../domain/reference';
+import { ReportDataChangeEvent } from '../../domain/report-data-change-event';
+import { ReportCalculation } from '../../domain/report-calculation';
+import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 import {
-  Report,
-  ReportRepository,
-} from '../report/repository/report-repository.service';
-import { NotificationService } from '../notification/notification/notification.service';
-import { Reference } from '../domain/reference';
-import { ReportDataChangeEvent } from '../domain/report-data-change-event';
-import { ReportCalculation } from '../domain/report-calculation';
-import { CouchDbClient } from '../couchdb/couch-db-client.service';
-import { CouchDbChangeResult, CouchDbChangesResponse } from '../couchdb/dtos';
+  CouchDbChangeResult,
+  CouchDbChangesResponse,
+} from '../../couchdb/dtos';
+import { Report } from '../../domain/report';
+import { ReportChangesService } from './report-changes.service';
+import { ReportStorage } from '../../report/core/report-storage';
 
-/**
- * Monitor all changes to the application database and check if they affect any report's results.
- */
 @Injectable()
-export class ReportChangesService {
+export class CouchdbReportChangesService implements ReportChangesService {
   private reportMonitors = new Map<string, ReportChangeDetector>();
 
   constructor(
     private notificationService: NotificationService,
-    private reportRepository: ReportRepository,
+    private reportStorage: ReportStorage,
     private couchDbClient: CouchDbClient,
   ) {
     // TODO: where to get databaseUrl and databaseName from? Can we centralize this ...?
@@ -52,14 +51,15 @@ export class ReportChangesService {
     if (!this.reportMonitors.has(report.id)) {
       // TODO: reuse ReportRepository and its ReportDoc (currently not exported) here? Or duplicate some things to keep stuff isolated?
       // TODO: can we centralize the auth stuff somehow? not sure where I would get this from in this context ...
-      this.reportRepository
-        .fetchReport('TODO', report.id)
-        .subscribe((reportDoc: Report) =>
-          this.reportMonitors.set(
-            report.id,
-            new ReportChangeDetector(reportDoc),
-          ),
-        );
+      this.reportStorage
+        .fetchReport('TODO', report)
+        .subscribe((report: Report | undefined) => {
+          if (!report) {
+            return;
+          }
+
+          this.reportMonitors.set(report.id, new ReportChangeDetector(report));
+        });
     }
   }
 
