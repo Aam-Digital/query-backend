@@ -13,9 +13,9 @@ servers:
         default: dev
         description: Customer ID assigned by the service provider
 tags:
-  - name: report
+  - name: reporting
     description: Access reports and their results and trigger one-time report calculations.
-  - name: notification
+  - name: notifications
     description: Subscribe to continuous notification events whenever a report's result data changes due to users changing records in the Aam Digital application.
 
 paths:
@@ -23,9 +23,9 @@ paths:
     get:
       security:
         - development:
-          - reporting_read
+            - reporting_read
       tags:
-        - report
+        - reporting
       summary: Return list of available Reports
       responses:
         200:
@@ -47,9 +47,9 @@ paths:
     get:
       security:
         - development:
-          - reporting_read
+            - reporting_read
       tags:
-        - report
+        - reporting
       summary: Return report metadata by ID
       parameters:
         - in: path
@@ -81,9 +81,9 @@ paths:
     get:
       security:
         - development:
-          - reporting_read
+            - reporting_read
       tags:
-        - report
+        - reporting
       summary: Return all report calculations for a report
       parameters:
         - in: path
@@ -114,9 +114,9 @@ paths:
     post:
       security:
         - development:
-          - reporting_write
+            - reporting_write
       tags:
-        - report
+        - reporting
       summary: Trigger a new report calculation run.
       description: Trigger a new report calculation run. Check status of the asynchronous calculation via the /report-calculation endpoint
         As an alternative to triggering a single report calculation, you can subscribe to receive
@@ -162,9 +162,9 @@ paths:
     get:
       security:
         - development:
-          - reporting_read
+            - reporting_read
       tags:
-        - report
+        - reporting
       summary: Return metadata for a report calculation
       parameters:
         - in: path
@@ -198,9 +198,9 @@ paths:
     get:
       security:
         - development:
-          - reporting_read
+            - reporting_read
       tags:
-        - report
+        - reporting
       summary: Fetch actual report data for a specific calculation
       parameters:
         - in: path
@@ -237,9 +237,9 @@ paths:
     get:
       security:
         - development:
-          - reporting_read
+            - reporting_read
       tags:
-        - notification
+        - notifications
       summary: Return list of existing Webhooks for your authorized client
       responses:
         200:
@@ -267,9 +267,9 @@ paths:
     get:
       security:
         - development:
-          - reporting_read
+            - reporting_read
       tags:
-        - notification
+        - notifications
       summary: Return a specific Webhook
       parameters:
         - in: path
@@ -307,9 +307,9 @@ paths:
     post:
       security:
         - development:
-          - reporting_write
+            - reporting_write
       tags:
-        - notification
+        - notifications
       summary: Subscribe to events for a specific Report
       description: If you subscribe to a reportId, Aam Digital will continuously monitor the changes users
         make in the application and check if they affect the results calculated by that report.
@@ -356,9 +356,9 @@ paths:
     delete:
       security:
         - development:
-          - reporting_write
+            - reporting_write
       tags:
-        - notification
+        - notifications
       summary: Remove event subscription for a specific Report
       parameters:
         - in: path
