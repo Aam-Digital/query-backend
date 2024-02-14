@@ -1,10 +1,15 @@
-import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException, } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { catchError, map, Observable } from 'rxjs';
 import { CouchDbRow } from '../../couchdb/dtos';
 
-export interface ReportDoc {
+interface Report {
   _id: string;
   _rev: string;
   title: string;
@@ -23,7 +28,7 @@ export interface ReportDoc {
 interface FetchReportsResponse {
   total_rows: number;
   offset: number;
-  rows: CouchDbRow<ReportDoc>[];
+  rows: CouchDbRow<Report>[];
 }
 
 @Injectable()
@@ -63,9 +68,9 @@ export class ReportRepository {
       );
   }
 
-  fetchReport(authToken: string, reportId: string): Observable<ReportDoc> {
+  fetchReport(authToken: string, reportId: string): Observable<Report> {
     return this.http
-      .get<ReportDoc>(`${this.dbUrl}/app/${reportId}`, {
+      .get<Report>(`${this.dbUrl}/app/${reportId}`, {
         headers: {
           Authorization: authToken,
         },

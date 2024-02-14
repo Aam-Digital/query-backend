@@ -13,10 +13,12 @@ export class Report {
   id: string;
   name: string;
   schema: ReportSchema | undefined;
+  queries: string[];
 
-  constructor(id: string, name: string) {
+  constructor(id: string, name: string, queries: string[]) {
     this.id = id;
     this.name = name;
+    this.queries = queries;
   }
 
   setId(id: string): Report {
@@ -31,6 +33,11 @@ export class Report {
 
   setSchema(schema: ReportSchema): Report {
     this.schema = schema;
+    return this;
+  }
+
+  setQueries(queries: string[]): Report {
+    this.queries = queries;
     return this;
   }
 }

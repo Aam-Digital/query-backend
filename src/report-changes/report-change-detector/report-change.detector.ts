@@ -1,31 +1,34 @@
-import { ReportDoc } from "../../report/repository/report-repository.service";
+import { Report } from '../../domain/report';
 
 export class ReportChangeDetector {
-  private report?: ReportDoc;
+  private report?: Report;
   private sqlTableNames: string[] = [];
 
-  constructor(report: ReportDoc) {
+  constructor(report: Report) {
     this.updateReportConfig(report);
   }
 
-  updateReportConfig(report: ReportDoc) {
+  updateReportConfig(report: Report) {
     this.report = report;
 
     this.sqlTableNames = this.getSqlTableNames(report);
   }
 
-  private getSqlTableNames(report: ReportDoc) {
+  private getSqlTableNames(report: Report) {
     const sqlFromTableRegex = /FROM\s+(\w+)/g;
 
-    return report.aggregationDefinitions.map((sql: string) =>
-      [...sql.matchAll(sqlFromTableRegex)].map(match => match[1] /* matching regex group (table name) */)
-    ).flat();
+    return report.queries
+      .map((sql: string) =>
+        [...sql.matchAll(sqlFromTableRegex)].map(
+          (match) => match[1] /* matching regex group (table name) */,
+        ),
+      )
+      .flat();
   }
 
   affectsReport(doc: EntityDoc): boolean {
-    const entityType = doc._id.split(":")[0];
+    const entityType = doc._id.split(':')[0];
     if (this.sqlTableNames.includes(entityType)) {
-
       // TODO: better detection if doc affects report
 
       return true;
