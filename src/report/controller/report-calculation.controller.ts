@@ -22,7 +22,7 @@ export class ReportCalculationController {
     @Headers('Authorization') token: string,
     @Param('reportId') reportId: string,
   ): Observable<Reference> {
-    return this.reportStorage.fetchReport(token, new Reference(reportId)).pipe(
+    return this.reportStorage.fetchReport(new Reference(reportId), token).pipe(
       switchMap((value) => {
         if (!value) {
           throw new NotFoundException();
@@ -64,7 +64,7 @@ export class ReportCalculationController {
           }
 
           return this.reportStorage
-            .fetchReport(token, new Reference(calculation.report.id))
+            .fetchReport(new Reference(calculation.report.id), token)
             .pipe(
               map((report) => {
                 if (!report) {
