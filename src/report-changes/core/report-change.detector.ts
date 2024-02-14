@@ -1,4 +1,5 @@
 import { Report } from '../../domain/report';
+import { DocChangeDetails } from './couchdb-report-changes.service';
 
 export class ReportChangeDetector {
   private report?: Report;
@@ -26,15 +27,14 @@ export class ReportChangeDetector {
       .flat();
   }
 
-  affectsReport(doc: EntityDoc): boolean {
-    const entityType = doc._id.split(':')[0];
-    if (this.sqlTableNames.includes(entityType)) {
-      // TODO: better detection if doc affects report
-
-      return true;
+  affectsReport(doc: DocChangeDetails): boolean {
+    const entityType = doc.change.id.split(':')[0];
+    if (!this.sqlTableNames.includes(entityType)) {
+      return false;
     }
 
-    return false;
+    // TODO: better detection if doc affects report
+    return true;
   }
 }
 
