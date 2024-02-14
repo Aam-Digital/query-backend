@@ -22,7 +22,7 @@ export class CouchdbReportChangesService implements ReportChangesService {
     private reportStorage: ReportStorage,
     private couchDbClient: CouchDbClient,
   ) {
-    // TODO: where to get databaseUrl and databaseName from? Can we centralize this ...?
+    // (!) TODO: where to get databaseUrl and databaseName from? Can we centralize this ...?
     this.couchDbClient
       .changes('TODO', 'app')
       .subscribe((changes: CouchDbChangesResponse) => {
@@ -49,10 +49,8 @@ export class CouchdbReportChangesService implements ReportChangesService {
 
   async registerReportMonitoring(report: Reference) {
     if (!this.reportMonitors.has(report.id)) {
-      // TODO: reuse ReportRepository and its ReportDoc (currently not exported) here? Or duplicate some things to keep stuff isolated?
-      // TODO: can we centralize the auth stuff somehow? not sure where I would get this from in this context ...
       this.reportStorage
-        .fetchReport('TODO', report)
+        .fetchReport(report)
         .subscribe((report: Report | undefined) => {
           if (!report) {
             return;
