@@ -8,8 +8,8 @@ export interface ReportStorage {
   fetchAllReports(authToken: string, mode: string): Observable<Report[]>;
 
   fetchReport(
-    authToken: string,
     reportRef: Reference,
+    authToken?: string | undefined,
   ): Observable<Report | undefined>;
 
   fetchPendingCalculations(): Observable<ReportCalculation[]>;

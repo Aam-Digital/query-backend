@@ -43,8 +43,11 @@ export class DefaultReportStorage implements ReportStorage {
     );
   }
 
-  fetchReport(authToken: string, reportRef: Reference): Observable<Report> {
-    return this.reportRepository.fetchReport(authToken, reportRef.id).pipe(
+  fetchReport(
+    reportRef: Reference,
+    authToken?: string | undefined,
+  ): Observable<Report | undefined> {
+    return this.reportRepository.fetchReport(reportRef.id, authToken).pipe(
       map((report) => {
         return new Report(
           report._id,

@@ -33,7 +33,7 @@ export class ReportController {
     @Param('reportId') reportId: string,
   ): Observable<ReportDto> {
     return this.reportStorage
-      .fetchReport(token, new Reference(reportId))
+      .fetchReport(new Reference(reportId), token)
       .pipe(switchMap((report) => this.getReportDto(report)));
   }
   private getReportDto(report: Report): Observable<ReportDto> {
