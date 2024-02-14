@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ReportChangeDetector } from './report-change.detector';
+import { EntityDoc, ReportChangeDetector } from './report-change.detector';
 import { NotificationService } from '../../notification/core/notification.service';
 import { Reference } from '../../domain/reference';
 import { ReportDataChangeEvent } from '../../domain/report-data-change-event';
@@ -12,6 +12,7 @@ import { Report } from '../../domain/report';
 import { ReportChangesService } from './report-changes.service';
 import { CouchdbChangesRepositoryService } from '../repository/couchdb-changes-repository.service';
 import { DefaultReportStorage } from '../../report/storage/report-storage.service';
+import { map, mergeAll, tap } from 'rxjs';
 
 @Injectable()
 export class CouchdbReportChangesService implements ReportChangesService {
@@ -22,54 +23,103 @@ export class CouchdbReportChangesService implements ReportChangesService {
     private reportStorage: DefaultReportStorage,
     private couchdbChangesRepository: CouchdbChangesRepositoryService,
   ) {
-    this.couchdbChangesRepository
-      .fetchChanges()
-      .subscribe((changes: CouchDbChangesResponse) => {
-        // TODO: ensure continued fetching until all changes done
-        // TODO: collect a batch of changes for a while before checking?
-        for (const c of changes.results) {
-          this.checkIncomingDocChange(c);
-
-          if (this.reportMonitors.has(c.id)) {
-            // TODO: reportId in reportMonitors with or without prefix?
-
-            // TODO: load actual current doc (may not be in c.doc?)
-            this.reportMonitors.get(c.id)?.updateReportConfig(c.doc);
-          }
-        }
-      });
-
     this.notificationService
       .activeReports()
       .subscribe((reports: Reference[]) =>
         reports.forEach((r) => this.registerReportMonitoring(r)),
       );
+
+    this.monitorCouchDbChanges();
   }
 
   async registerReportMonitoring(report: Reference) {
     if (!this.reportMonitors.has(report.id)) {
-      this.reportStorage
-        .fetchReport(report)
-        .subscribe((report: Report | undefined) => {
-          if (!report) {
-            return;
-          }
-
-          this.reportMonitors.set(report.id, new ReportChangeDetector(report));
-        });
+      this.setReportMonitor(report);
     }
   }
 
-  private checkIncomingDocChange(change: CouchDbChangeResult) {
-    const doc = { _id: '' }; // TODO: load doc here?
+  private setReportMonitor(report: Reference) {
+    this.reportStorage
+      .fetchReport(report)
+      .subscribe((report: Report | undefined) => {
+        if (!report) {
+          return;
+        }
+
+        this.reportMonitors.set(report.id, new ReportChangeDetector(report));
+      });
+  }
+
+  private checkReportConfigUpdate(change: CouchDbChangeResult) {
+    if (this.reportMonitors.has(change.id)) {
+      this.setReportMonitor(new Reference(change.id));
+      return;
+    }
+
+    // TODO: reportId should in future be without prefix, probably?
+    //       (then remove to fallback code above)
+    const id = change.id.split(':');
+    if (
+      id.length === 2 &&
+      id[0] === 'ReportConfig' &&
+      this.reportMonitors.has(id[1])
+    ) {
+      this.setReportMonitor(new Reference(change.id));
+    }
+  }
+
+  monitorCouchDbChanges() {
+    this.couchdbChangesRepository
+      .fetchChanges()
+      // (!!!) TODO: ensure continued fetching until all changes done
+      .pipe(
+        map((changes: CouchDbChangesResponse) => changes.results),
+        mergeAll(),
+        tap((change: CouchDbChangeResult) =>
+          this.checkReportConfigUpdate(change),
+        ),
+        map((c: CouchDbChangeResult) => this.getChangeDetails(c)),
+        map((change: DocChangeDetails) => this.changeIsAffectingReport(change)),
+        // TODO: collect a batch of changes for a while before checking?
+      )
+      .subscribe((affectedReports: ReportDataChangeEvent[]) => {
+        affectedReports.forEach((event) =>
+          this.notificationService.triggerNotification(event),
+        );
+      });
+  }
+
+  /**
+   * Load current and previous doc for advanced change detection across all reports.
+   * @param change
+   * @private
+   */
+  private getChangeDetails(change: CouchDbChangeResult): DocChangeDetails {
+    // TODO: storage to get any doc from DB (for a _rev also!)
+    //       until then, only the .change with the id can be used in ReportChangeDetector
+    // can also use ?include_docs=true in the changes request to get the latest doc
+
+    return {
+      change: change,
+      previous: { _id: '' }, // cache this here to avoid requests?
+      new: { _id: '' },
+    };
+  }
+
+  private changeIsAffectingReport(
+    docChange: DocChangeDetails,
+  ): ReportDataChangeEvent[] {
+    const affectedReports = [];
+
     for (const [reportId, changeDetector] of this.reportMonitors.entries()) {
-      if (!changeDetector.affectsReport(doc)) {
+      if (!changeDetector.affectsReport(docChange)) {
         continue;
       }
 
       const reportRef = new Reference(reportId);
 
-      // TODO: calculate a new report calculation here? Or in the changeDetector?
+      // (!!!) TODO: calculate a new report calculation here (or in ChangeDetector?)
+      //           --> move ReportCalculationController implementation into a core service with .triggerCalculation(reportId) method
       // const newResult = await this.reportService.runReportCalculation(reportId);
       // if (newResult.hash !== oldResult.hash)
       const calculation: ReportCalculation = new ReportCalculation(
@@ -81,7 +131,16 @@ export class CouchdbReportChangesService implements ReportChangesService {
         report: reportRef,
         calculation: reportRef,
       };
-      this.notificationService.triggerNotification(event);
+
+      affectedReports.push(event);
     }
+
+    return affectedReports;
   }
+}
+
+export interface DocChangeDetails {
+  change: CouchDbChangeResult;
+  previous: EntityDoc;
+  new: EntityDoc;
 }

@@ -5,8 +5,10 @@ import { NotificationModule } from '../notification/notification.module';
 import { ReportModule } from '../report/report.module';
 import { CouchDbClient } from '../couchdb/couch-db-client.service';
 import { HttpModule } from '@nestjs/axios';
+import { TestController } from './test-controller';
 
 @Module({
+  controllers: [TestController],
   imports: [NotificationModule, ReportModule, HttpModule],
   providers: [
     CouchdbReportChangesService,
