@@ -262,6 +262,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    post:
+      security:
+        - development:
+            - reporting_write
+      tags:
+        - notifications
+      summary: Subscribe to events for a specific Report
+      description: Register a webhook to be called for one or more notification subscriptions. To receive events, make calls to your webhookId's /subscribe endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookConfiguration'
+      responses:
+        200:
+          description: Webhook registered successfully, you can now register subscriptions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+        401:
+          description: If no valid access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /webhook/{webhookId}:
     get:
