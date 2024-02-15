@@ -47,7 +47,9 @@ export class ReportRepository {
     this.authHeaderValue = `Basic ${authHeader}`;
   }
 
-  fetchReports(authToken: string): Observable<FetchReportsResponse> {
+  fetchReports(
+    authToken: string = this.authHeaderValue,
+  ): Observable<FetchReportsResponse> {
     return this.http
       .get<FetchReportsResponse>(`${this.dbUrl}/app/_all_docs`, {
         params: {
@@ -68,7 +70,10 @@ export class ReportRepository {
       );
   }
 
-  fetchReport(authToken: string, reportId: string): Observable<ReportDoc> {
+  fetchReport(
+    reportId: string,
+    authToken: string = this.authHeaderValue,
+  ): Observable<ReportDoc> {
     return this.http
       .get<ReportDoc>(`${this.dbUrl}/app/${reportId}`, {
         headers: {

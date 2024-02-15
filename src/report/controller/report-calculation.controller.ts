@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Headers,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
@@ -11,33 +12,39 @@ import { map, Observable, switchMap } from 'rxjs';
 import { ReportCalculation } from '../../domain/report-calculation';
 import { Reference } from '../../domain/reference';
 import { ReportData } from '../../domain/report-data';
-import { v4 as uuidv4 } from 'uuid';
+import {
+  CreateReportCalculationFailed,
+  CreateReportCalculationUseCase,
+} from '../core/use-cases/create-report-calculation-use-case.service';
 
 @Controller('/api/v1/reporting')
 export class ReportCalculationController {
-  constructor(private reportStorage: DefaultReportStorage) {}
+  constructor(
+    private reportStorage: DefaultReportStorage,
+    private createReportCalculation: CreateReportCalculationUseCase,
+  ) {}
 
   @Post('/report-calculation/report/:reportId')
   startCalculation(
     @Headers('Authorization') token: string,
     @Param('reportId') reportId: string,
   ): Observable<Reference> {
-    return this.reportStorage.fetchReport(token, new Reference(reportId)).pipe(
+    return this.reportStorage.fetchReport(new Reference(reportId), token).pipe(
       switchMap((value) => {
         if (!value) {
           throw new NotFoundException();
         }
 
-        return this.reportStorage
-          .storeCalculation(
-            new ReportCalculation(
-              `ReportCalculation:${uuidv4()}`,
-              new Reference(reportId),
-            ),
-          )
-          .pipe(
-            map((reportCalculation) => new Reference(reportCalculation.id)),
-          );
+        return this.createReportCalculation.startReportCalculation(value).pipe(
+          map((outcome) => {
+            if (outcome instanceof CreateReportCalculationFailed) {
+              // TODO: other error codes?
+              throw new InternalServerErrorException();
+            }
+
+            return new Reference(outcome.result.id);
+          }),
+        );
       }),
     );
   }
@@ -64,7 +71,7 @@ export class ReportCalculationController {
           }
 
           return this.reportStorage
-            .fetchReport(token, new Reference(calculation.report.id))
+            .fetchReport(new Reference(calculation.report.id), token)
             .pipe(
               map((report) => {
                 if (!report) {

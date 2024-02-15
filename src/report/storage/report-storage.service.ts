@@ -2,7 +2,7 @@ import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
 import { ReportStorage } from '../core/report-storage';
 import { ReportRepository } from '../repository/report-repository.service';
-import { map, Observable, switchMap } from 'rxjs';
+import { map, Observable, Subject, switchMap, tap } from 'rxjs';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   ReportCalculation,
@@ -21,6 +21,8 @@ export class DefaultReportStorage implements ReportStorage {
     private reportCalculationRepository: ReportCalculationRepository,
   ) {}
 
+  reportCalculationUpdated = new Subject<ReportCalculation>();
+
   fetchAllReports(authToken: string, mode = 'sql'): Observable<Report[]> {
     return this.reportRepository.fetchReports(authToken).pipe(
       map((response) => {
@@ -31,7 +33,11 @@ export class DefaultReportStorage implements ReportStorage {
         return response.rows
           .filter((row) => row.doc.mode === mode)
           .map((reportEntity) =>
-            new Report(reportEntity.id, reportEntity.doc.title).setSchema({
+            new Report(
+              reportEntity.id,
+              reportEntity.doc.title,
+              reportEntity.doc.aggregationDefinitions,
+            ).setSchema({
               fields: reportEntity.doc.aggregationDefinitions, // todo generate actual fields here
             }),
           );
@@ -39,11 +45,18 @@ export class DefaultReportStorage implements ReportStorage {
     );
   }
 
-  fetchReport(authToken: string, reportRef: Reference): Observable<Report> {
-    return this.reportRepository.fetchReport(authToken, reportRef.id).pipe(
-      map((reportDoc) => {
-        return new Report(reportDoc._id, reportDoc.title).setSchema({
-          fields: reportDoc.aggregationDefinitions, // todo generate actual fields here
+  fetchReport(
+    reportRef: Reference,
+    authToken?: string | undefined,
+  ): Observable<Report | undefined> {
+    return this.reportRepository.fetchReport(reportRef.id, authToken).pipe(
+      map((report) => {
+        return new Report(
+          report._id,
+          report.title,
+          report.aggregationDefinitions,
+        ).setSchema({
+          fields: report.aggregationDefinitions, // todo generate actual fields here
         });
       }),
     );
@@ -126,6 +139,7 @@ export class DefaultReportStorage implements ReportStorage {
             return value;
           }
         }),
+        tap((calculation) => this.reportCalculationUpdated.next(calculation)),
       );
   }
 

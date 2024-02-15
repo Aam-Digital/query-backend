@@ -6,6 +6,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { ReportModule } from './report/report.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ReportChangesModule } from './report-changes/report-changes.module';
+import { NotificationModule } from './notification/notification.module';
 
 const lowSeverityLevels: SeverityLevel[] = ['log', 'info'];
 
@@ -59,6 +61,8 @@ const lowSeverityLevels: SeverityLevel[] = ['log', 'info'];
       },
     }),
     ReportModule,
+    ReportChangesModule,
+    NotificationModule,
   ],
   controllers: [],
 })

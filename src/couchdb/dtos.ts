@@ -26,3 +26,38 @@ export class FindResponse<T> {
 
   docs: T[];
 }
+
+/**
+ * Response from the CouchDB changes endpoint, listing database docs that have changed
+ * since the given last change (last_seq).
+ *
+ * see https://docs.couchdb.org/en/stable/api/database/changes.html
+ */
+export interface CouchDbChangesResponse {
+  /** Last change update sequence */
+  last_seq: string;
+
+  /** array of docs with changes */
+  results: CouchDbChangeResult[];
+
+  /** Count of remaining items in the feed */
+  pending: number;
+}
+
+/**
+ * A single result entry from a CouchDB changes feed,
+ * indicating one doc has changed.
+ *
+ * see https://docs.couchdb.org/en/stable/api/database/changes.html
+ */
+export interface CouchDbChangeResult {
+  /** _id of a doc with changes */
+  id: string;
+
+  /** List of document’s leaves with single field rev. */
+  changes: { rev: string }[];
+
+  seq: string;
+
+  doc?: any;
+}

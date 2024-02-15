@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { AxiosHeaders } from 'axios';
+import { CouchDbChangesResponse } from './dtos';
 
 @Injectable()
 export class CouchDbClient {
@@ -117,5 +118,26 @@ export class CouchDbClient {
 
   private handleError(err: any) {
     this.logger.debug(err);
+  }
+
+  changes(
+    databaseUrl: string,
+    databaseName: string,
+    config?: any,
+  ): Observable<CouchDbChangesResponse> {
+    return this.httpService
+      .get<CouchDbChangesResponse>(
+        `${databaseUrl}/${databaseName}/_changes`,
+        config,
+      )
+      .pipe(
+        map((response) => {
+          return response.data;
+        }),
+        catchError((err) => {
+          this.handleError(err);
+          throw err;
+        }),
+      );
   }
 }
