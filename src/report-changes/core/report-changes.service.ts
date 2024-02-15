@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EntityDoc, ReportChangeDetector } from './report-change.detector';
+import { EntityDoc, ReportChangeDetector } from './report-change-detector';
 import { NotificationService } from '../../notification/core/notification.service';
 import { Reference } from '../../domain/reference';
 import { ReportDataChangeEvent } from '../../domain/report-data-change-event';

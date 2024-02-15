@@ -126,7 +126,7 @@ describe('CouchdbChangesService', () => {
   });
 
   it('should fetch all pending', (done) => {
-    const received: DatabaseChangeResult[][] = [];
+    const received: CouchDbChangesResponse[] = [];
     mockCouchdbChanges
       .mockReturnValueOnce(
         of({

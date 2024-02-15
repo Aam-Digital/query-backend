@@ -1,8 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReportChangesService } from './report-changes.service';
-import { BehaviorSubject, map } from 'rxjs';
+import { BehaviorSubject, map, of } from 'rxjs';
 import { NotificationService } from '../../notification/core/notification.service';
 import { Reference } from '../../domain/reference';
+import { DefaultReportStorage } from '../../report/storage/report-storage.service';
+import { CouchdbChangesService } from '../storage/couchdb-changes.service';
+import { CreateReportCalculationUseCase } from '../../report/core/use-cases/create-report-calculation-use-case.service';
 
 describe('ReportChangesService', () => {
   let service: ReportChangesService;
@@ -24,6 +27,15 @@ describe('ReportChangesService', () => {
       providers: [
         ReportChangesService,
         { provide: NotificationService, useValue: mockNotificationService },
+        { provide: DefaultReportStorage, useValue: null },
+        {
+          provide: CouchdbChangesService,
+          useValue: { subscribeToAllNewChanges: () => of() },
+        },
+        {
+          provide: CreateReportCalculationUseCase,
+          useValue: null,
+        },
       ],
     }).compile();
 
