@@ -2,7 +2,7 @@ import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
 import { ReportStorage } from '../core/report-storage';
 import { ReportRepository } from '../repository/report-repository.service';
-import { map, Observable, switchMap } from 'rxjs';
+import { map, Observable, Subject, switchMap, tap } from 'rxjs';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   ReportCalculation,
@@ -20,6 +20,8 @@ export class DefaultReportStorage implements ReportStorage {
     private reportRepository: ReportRepository,
     private reportCalculationRepository: ReportCalculationRepository,
   ) {}
+
+  reportCalculationUpdated = new Subject<ReportCalculation>();
 
   fetchAllReports(authToken: string, mode = 'sql'): Observable<Report[]> {
     return this.reportRepository.fetchReports(authToken).pipe(
@@ -137,6 +139,7 @@ export class DefaultReportStorage implements ReportStorage {
             return value;
           }
         }),
+        tap((calculation) => this.reportCalculationUpdated.next(calculation)),
       );
   }
 

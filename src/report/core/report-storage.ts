@@ -1,6 +1,6 @@
 import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { ReportCalculation } from '../../domain/report-calculation';
 import { ReportData } from '../../domain/report-data';
 
@@ -27,4 +27,6 @@ export interface ReportStorage {
   fetchData(runRef: Reference): Observable<ReportData | undefined>;
 
   isCalculationOngoing(reportRef: Reference): Observable<boolean>;
+
+  reportCalculationUpdated: Subject<ReportCalculation>;
 }

@@ -9,6 +9,7 @@ import { ReportCalculationTask } from './tasks/report-calculation-task.service';
 import { ReportCalculationProcessor } from './tasks/report-calculation-processor.service';
 import { SqsReportCalculator } from './core/sqs-report-calculator.service';
 import { CouchDbClient } from '../couchdb/couch-db-client.service';
+import { CreateReportCalculationUseCase } from './core/use-cases/create-report-calculation-use-case.service';
 
 @Module({
   controllers: [ReportController, ReportCalculationController],
@@ -21,7 +22,8 @@ import { CouchDbClient } from '../couchdb/couch-db-client.service';
     ReportCalculationProcessor,
     SqsReportCalculator,
     CouchDbClient,
+    CreateReportCalculationUseCase,
   ],
-  exports: [DefaultReportStorage],
+  exports: [DefaultReportStorage, CreateReportCalculationUseCase],
 })
 export class ReportModule {}
