@@ -10,7 +10,7 @@ import {
 } from '../../couchdb/dtos';
 import { Report } from '../../domain/report';
 import { ReportChangesService } from './report-changes.service';
-import { CouchdbChangesRepositoryService } from '../repository/couchdb-changes-repository.service';
+import { CouchdbChangesService } from '../storage/couchdb-changes.service';
 import { DefaultReportStorage } from '../../report/storage/report-storage.service';
 import { map, mergeAll, tap } from 'rxjs';
 
@@ -21,7 +21,7 @@ export class CouchdbReportChangesService implements ReportChangesService {
   constructor(
     private notificationService: NotificationService,
     private reportStorage: DefaultReportStorage,
-    private couchdbChangesRepository: CouchdbChangesRepositoryService,
+    private couchdbChangesRepository: CouchdbChangesService,
   ) {
     this.notificationService
       .activeReports()
@@ -70,8 +70,7 @@ export class CouchdbReportChangesService implements ReportChangesService {
 
   monitorCouchDbChanges() {
     this.couchdbChangesRepository
-      .fetchChanges()
-      // (!!!) TODO: ensure continued fetching until all changes done
+      .subscribeToAllNewChanges()
       .pipe(
         map((changes: CouchDbChangesResponse) => changes.results),
         mergeAll(),
@@ -83,9 +82,10 @@ export class CouchdbReportChangesService implements ReportChangesService {
         // TODO: collect a batch of changes for a while before checking?
       )
       .subscribe((affectedReports: ReportDataChangeEvent[]) => {
-        affectedReports.forEach((event) =>
+        affectedReports.forEach((event) => {
           this.notificationService.triggerNotification(event),
-        );
+            console.log('Report change detected:', event);
+        });
       });
   }
 

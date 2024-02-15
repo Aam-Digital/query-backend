@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CouchdbReportChangesService } from './core/couchdb-report-changes.service';
-import { CouchdbChangesRepositoryService } from './repository/couchdb-changes-repository.service';
+import { CouchdbChangesService } from './storage/couchdb-changes.service';
 import { NotificationModule } from '../notification/notification.module';
 import { ReportModule } from '../report/report.module';
 import { CouchDbClient } from '../couchdb/couch-db-client.service';
@@ -12,7 +12,7 @@ import { TestController } from './test-controller';
   imports: [NotificationModule, ReportModule, HttpModule],
   providers: [
     CouchdbReportChangesService,
-    CouchdbChangesRepositoryService,
+    CouchdbChangesService,
     CouchDbClient, // TODO: pack this into a CouchDbModule together with HttpModule import etc.
   ],
   exports: [CouchdbReportChangesService],
