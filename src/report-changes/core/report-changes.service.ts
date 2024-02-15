@@ -26,9 +26,14 @@ export class ReportChangesService {
   ) {
     this.notificationService
       .activeReports()
-      .subscribe((reports: Reference[]) =>
-        reports.forEach((r) => this.registerReportMonitoring(r)),
-      );
+      .subscribe((reports: Reference[]) => {
+        reports.forEach((r) => this.registerReportMonitoring(r));
+        for (const [id, monitor] of this.reportMonitors.entries()) {
+          if (!reports.some((r) => r.id === id)) {
+            this.reportMonitors.delete(id);
+          }
+        }
+      });
 
     this.monitorCouchDbChanges();
   }
