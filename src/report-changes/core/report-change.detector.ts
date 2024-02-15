@@ -2,10 +2,13 @@ import { Report } from '../../domain/report';
 import { DocChangeDetails } from './couchdb-report-changes.service';
 
 export class ReportChangeDetector {
-  private report?: Report;
+  public report: Report;
+  public lastCalculationHash: string | undefined;
+
   private sqlTableNames: string[] = [];
 
   constructor(report: Report) {
+    this.report = report;
     this.updateReportConfig(report);
   }
 

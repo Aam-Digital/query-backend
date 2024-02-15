@@ -3,7 +3,7 @@ import { EntityDoc, ReportChangeDetector } from './report-change.detector';
 import { NotificationService } from '../../notification/core/notification.service';
 import { Reference } from '../../domain/reference';
 import { ReportDataChangeEvent } from '../../domain/report-data-change-event';
-import { ReportCalculation } from '../../domain/report-calculation';
+import { ReportCalculationOutcomeSuccess } from '../../domain/report-calculation';
 import {
   CouchDbChangeResult,
   CouchDbChangesResponse,
@@ -12,7 +12,11 @@ import { Report } from '../../domain/report';
 import { ReportChangesService } from './report-changes.service';
 import { CouchdbChangesService } from '../storage/couchdb-changes.service';
 import { DefaultReportStorage } from '../../report/storage/report-storage.service';
-import { map, mergeAll, tap } from 'rxjs';
+import { filter, map, mergeAll, Observable, switchMap, tap, zip } from 'rxjs';
+import {
+  CreateReportCalculationFailed,
+  CreateReportCalculationUseCase,
+} from '../../report/core/use-cases/create-report-calculation-use-case.service';
 
 @Injectable()
 export class CouchdbReportChangesService implements ReportChangesService {
@@ -22,6 +26,7 @@ export class CouchdbReportChangesService implements ReportChangesService {
     private notificationService: NotificationService,
     private reportStorage: DefaultReportStorage,
     private couchdbChangesRepository: CouchdbChangesService,
+    private createReportCalculation: CreateReportCalculationUseCase,
   ) {
     this.notificationService
       .activeReports()
@@ -78,13 +83,15 @@ export class CouchdbReportChangesService implements ReportChangesService {
           this.checkReportConfigUpdate(change),
         ),
         map((c: CouchDbChangeResult) => this.getChangeDetails(c)),
-        map((change: DocChangeDetails) => this.changeIsAffectingReport(change)),
+        switchMap((change: DocChangeDetails) =>
+          this.changeIsAffectingReport(change),
+        ),
         // TODO: collect a batch of changes for a while before checking?
       )
       .subscribe((affectedReports: ReportDataChangeEvent[]) => {
         affectedReports.forEach((event) => {
-          this.notificationService.triggerNotification(event),
-            console.log('Report change detected:', event);
+          this.notificationService.triggerNotification(event);
+          console.log('Report change detected:', event);
         });
       });
   }
@@ -108,8 +115,8 @@ export class CouchdbReportChangesService implements ReportChangesService {
 
   private changeIsAffectingReport(
     docChange: DocChangeDetails,
-  ): ReportDataChangeEvent[] {
-    const affectedReports = [];
+  ): Observable<ReportDataChangeEvent[]> {
+    const affectedReports: Observable<ReportDataChangeEvent>[] = [];
 
     for (const [reportId, changeDetector] of this.reportMonitors.entries()) {
       if (!changeDetector.affectsReport(docChange)) {
@@ -118,24 +125,43 @@ export class CouchdbReportChangesService implements ReportChangesService {
 
       const reportRef = new Reference(reportId);
 
-      // (!!!) TODO: calculate a new report calculation here (or in ChangeDetector?)
-      //           --> move ReportCalculationController implementation into a core service with .triggerCalculation(reportId) method
-      // const newResult = await this.reportService.runReportCalculation(reportId);
-      // if (newResult.hash !== oldResult.hash)
-      const calculation: ReportCalculation = new ReportCalculation(
-        'x',
-        reportRef,
-      );
+      const reportChangeEventObservable = this.createReportCalculation
+        .startReportCalculation(changeDetector.report)
+        .pipe(
+          switchMap((outcome) => {
+            if (outcome instanceof CreateReportCalculationFailed) {
+              // TODO: what do we do here in case of failure?
+              throw new Error('Report calculation failed');
+            }
 
-      const event: ReportDataChangeEvent = {
-        report: reportRef,
-        calculation: reportRef,
-      };
+            return this.createReportCalculation.getCompletedReportCalculation(
+              new Reference(outcome.result.id),
+            );
+          }),
+          filter(
+            (calcUpdate) =>
+              (calcUpdate.outcome as ReportCalculationOutcomeSuccess)
+                ?.result_hash !== changeDetector.lastCalculationHash,
+          ),
+          tap(
+            (calcUpdate) =>
+              (changeDetector.lastCalculationHash = (
+                calcUpdate.outcome as ReportCalculationOutcomeSuccess
+              )?.result_hash),
+          ),
+          map(
+            (result) =>
+              ({
+                report: result.report,
+                calculation: result,
+              }) as ReportDataChangeEvent,
+          ),
+        );
 
-      affectedReports.push(event);
+      affectedReports.push(reportChangeEventObservable);
     }
 
-    return affectedReports;
+    return zip(affectedReports);
   }
 }
 
