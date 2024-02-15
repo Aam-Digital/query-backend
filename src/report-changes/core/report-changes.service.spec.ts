@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CouchdbReportChangesService } from './couchdb-report-changes.service';
+import { ReportChangesService } from './report-changes.service';
 import { BehaviorSubject, map } from 'rxjs';
 import { NotificationService } from '../../notification/core/notification.service';
 import { Reference } from '../../domain/reference';
 
-describe('CouchdbReportChangesService', () => {
-  let service: CouchdbReportChangesService;
+describe('ReportChangesService', () => {
+  let service: ReportChangesService;
   let mockNotificationService: Partial<NotificationService>;
 
   let activeReports: BehaviorSubject<string[]>;
@@ -22,14 +22,12 @@ describe('CouchdbReportChangesService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CouchdbReportChangesService,
+        ReportChangesService,
         { provide: NotificationService, useValue: mockNotificationService },
       ],
     }).compile();
 
-    service = module.get<CouchdbReportChangesService>(
-      CouchdbReportChangesService,
-    );
+    service = module.get<ReportChangesService>(ReportChangesService);
   });
 
   it('should trigger core after adding active report through NotificationService', (done) => {

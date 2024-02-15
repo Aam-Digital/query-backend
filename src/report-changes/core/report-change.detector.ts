@@ -1,6 +1,9 @@
 import { Report } from '../../domain/report';
-import { DocChangeDetails } from './couchdb-report-changes.service';
+import { DocChangeDetails } from './report-changes.service';
 
+/**
+ * Simple class encapsulating the logic to determine if a specific report is affected by a change in the database.
+ */
 export class ReportChangeDetector {
   public report: Report;
   public lastCalculationHash: string | undefined;

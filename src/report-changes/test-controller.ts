@@ -1,12 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
-import { CouchdbReportChangesService } from './core/couchdb-report-changes.service';
+import { ReportChangesService } from './core/report-changes.service';
 import { Reference } from '../domain/reference';
 import { NotificationService } from '../notification/core/notification.service';
 
+// TODO: remove as soon as webhooks are implemented!
 @Controller('/test')
 export class TestController {
   constructor(
-    private changeDetectionService: CouchdbReportChangesService,
+    private changeDetectionService: ReportChangesService,
     private notificationService: NotificationService,
   ) {}
 

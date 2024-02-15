@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 import { finalize, of } from 'rxjs';
 import { CouchDbChangesResponse } from '../../couchdb/dtos';
+import { DatabaseChangeResult } from './database-changes.service';
 
 describe('CouchdbChangesService', () => {
   let service: CouchdbChangesService;
@@ -37,7 +38,7 @@ describe('CouchdbChangesService', () => {
         {
           provide: ConfigService,
           useValue: {
-            getOrThrow: jest.fn((key) => {
+            getOrThrow: jest.fn(() => {
               return 'foo';
             }),
           },
@@ -57,7 +58,7 @@ describe('CouchdbChangesService', () => {
   });
 
   it('should keep polling changes until client unsubscribes', () => {
-    const newChangesReceived: CouchDbChangesResponse[] = [];
+    const newChangesReceived: DatabaseChangeResult[][] = [];
 
     const changes$ = service
       .subscribeToAllNewChanges()
@@ -80,8 +81,8 @@ describe('CouchdbChangesService', () => {
   });
 
   it('should reuse existing polling for additional subscribers', () => {
-    let rec1: CouchDbChangesResponse[] = [];
-    let rec2: CouchDbChangesResponse[] = [];
+    let rec1: DatabaseChangeResult[][] = [];
+    let rec2: DatabaseChangeResult[][] = [];
 
     function resetCounters() {
       changesRequestCounter = 0;
@@ -125,7 +126,7 @@ describe('CouchdbChangesService', () => {
   });
 
   it('should fetch all pending', (done) => {
-    let received: CouchDbChangesResponse[] = [];
+    const received: DatabaseChangeResult[][] = [];
     mockCouchdbChanges
       .mockReturnValueOnce(
         of({
