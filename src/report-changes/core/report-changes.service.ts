@@ -107,8 +107,10 @@ export class ReportChangesService {
         continue;
       }
 
-      const reportChangeEventObservable =
-        this.calculateNewReportData(changeDetector);
+      const reportChangeEventObservable = this.calculateNewReportData(
+        changeDetector,
+        docChange,
+      );
 
       affectedReports.push(reportChangeEventObservable);
     }
@@ -116,7 +118,10 @@ export class ReportChangesService {
     return zip(affectedReports);
   }
 
-  private calculateNewReportData(changeDetector: ReportChangeDetector) {
+  private calculateNewReportData(
+    changeDetector: ReportChangeDetector,
+    docChange: DocChangeDetails,
+  ) {
     return this.createReportCalculation
       .startReportCalculation(changeDetector.report)
       .pipe(
@@ -132,11 +137,21 @@ export class ReportChangesService {
             new Reference(outcome.result.id),
           );
         }),
-        filter(
-          (calcUpdate) =>
+        filter((calcUpdate) => {
+          if (
             (calcUpdate.outcome as ReportCalculationOutcomeSuccess)
-              ?.result_hash !== changeDetector.lastCalculationHash,
-        ),
+              ?.result_hash !== changeDetector.lastCalculationHash
+          ) {
+            return true;
+          } else {
+            console.log(
+              'Report calculation did not change from doc',
+              changeDetector.report,
+              docChange,
+            );
+            return false;
+          }
+        }),
         tap(
           (calcUpdate) =>
             (changeDetector.lastCalculationHash = (
