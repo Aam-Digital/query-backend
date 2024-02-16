@@ -39,6 +39,10 @@ export class CouchdbChangesService extends DatabaseChangesService {
   private databasePassword: string =
     this.configService.getOrThrow('DATABASE_PASSWORD');
 
+  private changesPollInterval: number = Number(
+    this.configService.getOrThrow('CHANGES_POLL_INTERVAL'),
+  );
+
   private authHeaderValue: string;
 
   constructor(
@@ -65,7 +69,9 @@ export class CouchdbChangesService extends DatabaseChangesService {
         filter((res) => res.last_seq !== lastSeq),
         tap((res) => (lastSeq = res.last_seq)),
         // poll regularly to get latest changes
-        repeat({ delay: 10000 }),
+        repeat({
+          delay: this.changesPollInterval,
+        }),
         tap((res) => console.log('incoming couchdb changes', res)),
       );
 
