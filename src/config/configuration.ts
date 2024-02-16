@@ -13,6 +13,9 @@ export function AppConfiguration() {
   );
 }
 
+/**
+ * Recursively create a flat key-value object where keys contain nested keys as prefixes
+ */
 function flatten(obj: any, prefix = '', delimiter = '_') {
   return Object.keys(obj).reduce((acc: any, k: string) => {
     const pre = prefix.length ? prefix + delimiter : '';
