@@ -16,10 +16,11 @@ export class Report {
   schema: ReportSchema | undefined;
   queries: string[];
 
-  constructor(id: string, name: string, queries: string[]) {
+  constructor(id: string, name: string, queries: string[], mode: string) {
     this.id = id;
     this.name = name;
     this.queries = queries;
+    this.mode = mode;
   }
 
   setId(id: string): Report {

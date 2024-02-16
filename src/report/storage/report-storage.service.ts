@@ -2,7 +2,7 @@ import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
 import { ReportStorage } from '../core/report-storage';
 import { ReportRepository } from '../repository/report-repository.service';
-import { map, Observable, switchMap } from 'rxjs';
+import { map, Observable, Subject, switchMap, tap } from 'rxjs';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   ReportCalculation,
@@ -21,6 +21,8 @@ export class DefaultReportStorage implements ReportStorage {
     private reportCalculationRepository: ReportCalculationRepository,
   ) {}
 
+  reportCalculationUpdated = new Subject<ReportCalculation>();
+
   fetchAllReports(authToken: string, mode = 'sql'): Observable<Report[]> {
     return this.reportRepository.fetchReports(authToken).pipe(
       map((response) => {
@@ -35,6 +37,7 @@ export class DefaultReportStorage implements ReportStorage {
               reportEntity.id,
               reportEntity.doc.title,
               reportEntity.doc.aggregationDefinitions,
+              reportEntity.doc.mode,
             ).setSchema({
               fields: reportEntity.doc.aggregationDefinitions, // todo generate actual fields here
             }),
@@ -53,6 +56,7 @@ export class DefaultReportStorage implements ReportStorage {
           report._id,
           report.title,
           report.aggregationDefinitions,
+          report.mode,
         ).setSchema({
           fields: report.aggregationDefinitions, // todo generate actual fields here
         });
@@ -137,6 +141,7 @@ export class DefaultReportStorage implements ReportStorage {
             return value;
           }
         }),
+        tap((calculation) => this.reportCalculationUpdated.next(calculation)),
       );
   }
 

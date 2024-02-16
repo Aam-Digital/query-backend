@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { ReportModule } from './report/report.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AppConfiguration } from './config/configuration';
 import { ReportChangesModule } from './report-changes/report-changes.module';
 import { NotificationModule } from './notification/notification.module';
 
@@ -29,7 +30,11 @@ const lowSeverityLevels: SeverityLevel[] = ['log', 'info'];
   imports: [
     HttpModule,
     ScheduleModule.forRoot(),
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      ignoreEnvFile: false,
+      load: [AppConfiguration],
+    }),
     SentryModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

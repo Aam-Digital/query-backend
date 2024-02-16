@@ -1,10 +1,17 @@
 import { Report } from '../../domain/report';
+import { DocChangeDetails } from './report-changes.service';
 
+/**
+ * Simple class encapsulating the logic to determine if a specific report is affected by a change in the database.
+ */
 export class ReportChangeDetector {
-  private report?: Report;
+  public report: Report;
+  public lastCalculationHash: string | undefined;
+
   private sqlTableNames: string[] = [];
 
   constructor(report: Report) {
+    this.report = report;
     this.updateReportConfig(report);
   }
 
@@ -26,15 +33,14 @@ export class ReportChangeDetector {
       .flat();
   }
 
-  affectsReport(doc: EntityDoc): boolean {
-    const entityType = doc._id.split(':')[0];
-    if (this.sqlTableNames.includes(entityType)) {
-      // TODO: better detection if doc affects report
-
-      return true;
+  affectsReport(doc: DocChangeDetails): boolean {
+    const entityType = doc.change.id.split(':')[0];
+    if (!this.sqlTableNames.includes(entityType)) {
+      return false;
     }
 
-    return false;
+    // TODO: better detection if doc affects report
+    return true;
   }
 }
 
