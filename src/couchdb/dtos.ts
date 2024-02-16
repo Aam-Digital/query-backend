@@ -60,4 +60,6 @@ export interface CouchDbChangeResult {
   seq: string;
 
   doc?: any;
+
+  deleted?: boolean;
 }

@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -12,20 +13,19 @@ import {
   filter,
   finalize,
   map,
+  mergeAll,
   mergeMap,
   Observable,
   of,
   repeat,
   ReplaySubject,
   Subscription,
+  switchMap,
   tap,
 } from 'rxjs';
 import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 import { CouchDbChangesResponse } from '../../couchdb/dtos';
-import {
-  DatabaseChangeResult,
-  DatabaseChangesService,
-} from './database-changes.service';
+import { DatabaseChangeResult, DatabaseChangesService, DocChangeDetails, EntityDoc, } from './database-changes.service';
 
 /**
  * Access _changes from a CouchDB
@@ -33,7 +33,6 @@ import {
 @Injectable()
 export class CouchdbChangesService extends DatabaseChangesService {
   // TODO: centralize this config by refactoring couchdbClient and providing configured clients through DI
-  // TODO: check if this is the correct db for our changes from app
   private dbUrl: string = this.configService.getOrThrow('DATABASE_URL');
   private databaseName = 'app'; // TODO: move to config and clean up .env, clarifying different DBs there
   private databaseUser: string = this.configService.getOrThrow('DATABASE_USER');
@@ -56,16 +55,18 @@ export class CouchdbChangesService extends DatabaseChangesService {
   private changesSubj = new ReplaySubject<DatabaseChangeResult[]>(1);
   private changesSubscription: Subscription | undefined;
 
-  subscribeToAllNewChanges(): Observable<DatabaseChangeResult[]> {
+  subscribeToAllNewChanges(
+    includeDocs: boolean = false,
+  ): Observable<DatabaseChangeResult[]> {
     if (!this.changesSubscription) {
       let lastSeq = 'now';
       const changesFeed = of({}).pipe(
-        mergeMap(() => this.fetchChanges(lastSeq, true)),
+        mergeMap(() => this.fetchChanges(lastSeq, true, includeDocs)),
         filter((res) => res.last_seq !== lastSeq),
         tap((res) => (lastSeq = res.last_seq)),
         // poll regularly to get latest changes
         repeat({ delay: 10000 }),
-        tap((res) => console.log(res)),
+        tap((res) => console.log('incoming couchdb changes', res)),
       );
 
       this.changesSubscription = changesFeed
@@ -84,20 +85,90 @@ export class CouchdbChangesService extends DatabaseChangesService {
     );
   }
 
+  subscribeToAllNewChangesWithDocs(): Observable<DocChangeDetails> {
+    return this.subscribeToAllNewChanges(true).pipe(
+      mergeAll(),
+      tap((change) => console.log('new couchdb change', change)),
+      switchMap((change) =>
+        this.getPreviousRevOfDoc(change.id).pipe(
+          map((doc) => ({
+            change,
+            newDoc: change.doc,
+            previousDoc: doc,
+          })),
+        ),
+      ),
+      tap((change) => console.log('new change details', change)),
+    );
+  }
+
+  private getPreviousRevOfDoc(
+    docId: string,
+  ): Observable<EntityDoc | undefined> {
+    return this.findLastRev(docId).pipe(
+      switchMap((previousRev) => {
+        if (!previousRev) {
+          return of(undefined);
+        }
+
+        return this.couchdbClient.getDatabaseDocument<EntityDoc>(
+          this.dbUrl,
+          this.databaseName,
+          docId,
+          {
+            params: { rev: previousRev },
+            headers: { Authorization: this.authHeaderValue },
+          },
+        );
+      }),
+    );
+  }
+
+  /**
+   * query the previous _rev (directly before the current version) of a doc
+   * @param docId
+   * @private
+   */
+  private findLastRev(docId: string): Observable<string | undefined> {
+    return this.couchdbClient
+      .getDatabaseDocument<EntityDoc | { _revs_info: CouchDbDocRevsInfo }>(
+        this.dbUrl,
+        this.databaseName,
+        docId,
+        {
+          params: { revs_info: true },
+          headers: { Authorization: this.authHeaderValue },
+        },
+      )
+      .pipe(
+        map((doc) => {
+          const revsInfo: CouchDbDocRevsInfo = doc._revs_info;
+          if (revsInfo?.length > 1 && revsInfo[1].status === 'available') {
+            return revsInfo[1].rev;
+          } else {
+            return undefined;
+          }
+        }),
+      );
+  }
+
   /**
    * Get the changes since the given sequence number
    *
    * @param since The sequence number to start from (optional, if not given start from now only)
    * @param getAllPending Whether to trigger multiple requests and emit multiple values before completing, in case the first request has more pending changes
+   * @param includeDocs Whether the full document should be returned for each change
    */
   fetchChanges(
     since = 'now',
     getAllPending = false,
+    includeDocs = false,
   ): Observable<CouchDbChangesResponse> {
     return this.couchdbClient
       .changes(this.dbUrl, this.databaseName, {
         params: {
           since: since,
+          include_docs: includeDocs,
         },
         headers: {
           Authorization: this.authHeaderValue,
@@ -118,14 +189,32 @@ export class CouchdbChangesService extends DatabaseChangesService {
   }
 
   private handleError(err: any) {
-    if (err.response.status === 401) {
+    if (err.response?.status === 401) {
       throw new UnauthorizedException();
     }
-    if (err.response.status === 403) {
+    if (err.response?.status === 403) {
       throw new ForbiddenException();
     }
-    if (err.response.status === 404) {
+    if (err.response?.status === 404) {
       throw new NotFoundException();
     }
+
+    console.error(err);
+    throw new InternalServerErrorException();
   }
 }
+
+/**
+ * see https://docs.couchdb.org/en/stable/api/document/common.html#obtaining-an-extended-revision-history
+ */
+type CouchDbDocRevsInfo = {
+  rev: string;
+  /**
+   * Status of the revision. Maybe one of:
+   *
+   * available: Revision is available for retrieving with rev query parameter
+   * missing: Revision is not available
+   * deleted: Revision belongs to deleted document
+   */
+  status: 'available' | 'missing' | 'deleted';
+}[];
