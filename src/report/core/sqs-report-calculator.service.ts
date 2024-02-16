@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { ReportCalculator } from './report-calculator';
@@ -31,7 +32,7 @@ export class SqsReportCalculator implements ReportCalculator {
         }
 
         if (report.queries.length === 0) {
-          throw new BadRequestException();
+          throw new InternalServerErrorException();
         }
 
         return report.queries.flatMap((query) => {
