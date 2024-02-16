@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import {
   ReportCalculation,
@@ -10,6 +10,8 @@ import { ReportData } from '../../domain/report-data';
 
 @Injectable()
 export class ReportCalculationProcessor {
+  private readonly logger = new Logger(ReportCalculationProcessor.name);
+
   constructor(
     private reportStorage: DefaultReportStorage,
     private reportCalculator: SqsReportCalculator,
@@ -82,12 +84,15 @@ export class ReportCalculationProcessor {
     reportCalculation: ReportCalculation,
     err: any,
   ): Observable<ReportCalculation> {
+    this.logger.error('CALCULATION_FAILED', err, {
+      reportCalculation: reportCalculation,
+    });
     return this.reportStorage.storeCalculation(
       reportCalculation
         .setStatus(ReportCalculationStatus.FINISHED_ERROR)
         .setOutcome({
           errorCode: 'CALCULATION_FAILED',
-          errorMessage: err,
+          errorMessage: 'Something went wrong.',
         })
         .setEndDate(new Date().toISOString()),
     );

@@ -37,6 +37,7 @@ export class DefaultReportStorage implements ReportStorage {
               reportEntity.id,
               reportEntity.doc.title,
               reportEntity.doc.aggregationDefinitions,
+              reportEntity.doc.mode,
             ).setSchema({
               fields: reportEntity.doc.aggregationDefinitions, // todo generate actual fields here
             }),
@@ -55,6 +56,7 @@ export class DefaultReportStorage implements ReportStorage {
           report._id,
           report.title,
           report.aggregationDefinitions,
+          report.mode,
         ).setSchema({
           fields: report.aggregationDefinitions, // todo generate actual fields here
         });
