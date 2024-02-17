@@ -4,21 +4,33 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosHeaders } from 'axios';
 import { CouchDbChangesResponse } from './dtos';
 
+export class CouchDbClientConfig {
+  BASE_URL = '';
+  TARGET_DATABASE = '';
+  BASIC_AUTH_USER = '';
+  BASIC_AUTH_PASSWORD = '';
+}
+
 @Injectable()
 export class CouchDbClient {
   private readonly logger = new Logger(CouchDbClient.name);
 
   constructor(private httpService: HttpService) {}
 
-  headDatabaseDocument(
+  changes(
     databaseUrl: string,
     databaseName: string,
-    documentId: string,
     config?: any,
-  ) {
+  ): Observable<CouchDbChangesResponse> {
     return this.httpService
-      .head(`${databaseUrl}/${databaseName}/${documentId}`, config)
+      .get<CouchDbChangesResponse>(
+        `${databaseUrl}/${databaseName}/_changes`,
+        config,
+      )
       .pipe(
+        map((response) => {
+          return response.data;
+        }),
         catchError((err) => {
           this.handleError(err);
           throw err;
@@ -26,14 +38,23 @@ export class CouchDbClient {
       );
   }
 
-  getDatabaseDocument<T>(
-    databaseUrl: string,
-    databaseName: string,
-    documentId: string,
-    config?: any,
-  ): Observable<T> {
+  headDatabaseDocument(request: { documentId: string; config?: any }) {
+    return this.httpService.head(`${request.documentId}`, request.config).pipe(
+      catchError((err) => {
+        if (err.response.status !== 404) {
+          this.handleError(err);
+        }
+        throw err;
+      }),
+    );
+  }
+
+  getDatabaseDocument<T>(request: {
+    documentId: string;
+    config?: any;
+  }): Observable<T> {
     return this.httpService
-      .get<T>(`${databaseUrl}/${databaseName}/${documentId}`, config)
+      .get<T>(`${request.documentId}`, request.config)
       .pipe(
         map((response) => {
           return response.data;
@@ -64,21 +85,25 @@ export class CouchDbClient {
       );
   }
 
-  putDatabaseDocument<T>(
-    databaseUrl: string,
-    databaseName: string,
-    documentId: string,
-    body: any,
-    config?: any,
-  ): Observable<T> {
-    return this.latestRef(databaseUrl, databaseName, documentId, config).pipe(
+  putDatabaseDocument<T>(request: {
+    documentId: string;
+    body: any;
+    config: any;
+  }): Observable<T> {
+    return this.latestRef({
+      documentId: request.documentId,
+      config: request.config,
+    }).pipe(
       switchMap((rev) => {
         if (rev) {
-          config.headers['If-Match'] = rev;
+          if (!request.config.headers) {
+            request.config.headers = {};
+          }
+          request.config.headers['If-Match'] = rev;
         }
 
         return this.httpService
-          .put<T>(`${databaseUrl}/${databaseName}/${documentId}`, body, config)
+          .put<T>(request.documentId, request.body, request.config)
           .pipe(
             map((response) => {
               return response.data;
@@ -92,18 +117,14 @@ export class CouchDbClient {
     );
   }
 
-  private latestRef(
-    databaseUrl: string,
-    databaseName: string,
-    documentId: string,
-    config?: any,
-  ): Observable<string | undefined> {
-    return this.headDatabaseDocument(
-      databaseUrl,
-      databaseName,
-      documentId,
-      config,
-    ).pipe(
+  private latestRef(request: {
+    documentId: string;
+    config?: any;
+  }): Observable<string | undefined> {
+    return this.headDatabaseDocument({
+      documentId: request.documentId,
+      config: request.config,
+    }).pipe(
       map((response): string | undefined => {
         const headers = response.headers;
         if (headers instanceof AxiosHeaders && headers.has('etag')) {
@@ -117,27 +138,6 @@ export class CouchDbClient {
   }
 
   private handleError(err: any) {
-    this.logger.debug(err);
-  }
-
-  changes(
-    databaseUrl: string,
-    databaseName: string,
-    config?: any,
-  ): Observable<CouchDbChangesResponse> {
-    return this.httpService
-      .get<CouchDbChangesResponse>(
-        `${databaseUrl}/${databaseName}/_changes`,
-        config,
-      )
-      .pipe(
-        map((response) => {
-          return response.data;
-        }),
-        catchError((err) => {
-          this.handleError(err);
-          throw err;
-        }),
-      );
+    this.logger.error(err);
   }
 }

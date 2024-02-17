@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { WebhookStorage } from './webhook-storage.service';
+import { WebhookRepository } from './webhook-repository.service';
 
-describe('WebhookStorageService', () => {
-  let service: WebhookStorage;
+describe('CouchWebhookRepositoryService', () => {
+  let service: WebhookRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [WebhookStorage],
+      providers: [WebhookRepository],
     }).compile();
 
-    service = module.get<WebhookStorage>(WebhookStorage);
+    service = module.get<WebhookRepository>(WebhookRepository);
   });
 
   it('should be defined', () => {

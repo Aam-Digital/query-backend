@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WebhookController } from './webhook.controller';
-import { WebhookStorageService } from '../storage/webhook-storage.service';
+import { WebhookStorage } from '../storage/webhook-storage.service';
 import { NotificationService } from '../core/notification.service';
 
 describe('WebhookController', () => {
@@ -10,7 +10,7 @@ describe('WebhookController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [WebhookController],
       providers: [
-        { provide: WebhookStorageService, useValue: {} },
+        { provide: WebhookStorage, useValue: {} },
         { provide: NotificationService, useValue: {} },
       ],
     }).compile();

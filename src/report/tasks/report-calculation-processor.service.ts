@@ -74,7 +74,7 @@ export class ReportCalculationProcessor {
       reportCalculation
         .setStatus(ReportCalculationStatus.FINISHED_SUCCESS)
         .setOutcome({
-          result_hash: reportData.asHash(),
+          result_hash: reportData.getDataHash(),
         })
         .setEndDate(new Date().toISOString()),
     );

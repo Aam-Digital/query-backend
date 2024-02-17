@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,15 +10,15 @@ import {
 } from '@nestjs/common';
 import { defaultIfEmpty, map, Observable, zipAll } from 'rxjs';
 import { Reference } from '../../domain/reference';
-import { WebhookStorageService } from '../storage/webhook-storage.service';
-import { Webhook } from '../core/webhook';
+import { WebhookStorage } from '../storage/webhook-storage.service';
+import { Webhook } from '../domain/webhook';
 import { NotificationService } from '../core/notification.service';
-import { WebhookConfigurationDto, WebhookDto } from './dtos';
+import { CreateWebhookDto, WebhookDto } from './dtos';
 
-@Controller('/api/v1/notifications/webhook')
+@Controller('/api/v1/reporting/webhook')
 export class WebhookController {
   constructor(
-    private webhookStorage: WebhookStorageService,
+    private webhookStorage: WebhookStorage,
     private notificationService: NotificationService,
   ) {}
 
@@ -25,8 +26,8 @@ export class WebhookController {
   fetchWebhooksOfUser(
     @Headers('Authorization') token: string,
   ): Observable<WebhookDto[]> {
-    return this.webhookStorage.fetchAllWebhooks(token).pipe(
-      map((webhooks) => webhooks.map((webhook) => this.getWebhookDto(webhook))),
+    return this.webhookStorage.fetchAllWebhooks('user-token').pipe(
+      map((webhooks) => webhooks.map((webhook) => this.mapToDto(webhook))),
       zipAll(),
       defaultIfEmpty([]),
     );
@@ -39,21 +40,31 @@ export class WebhookController {
   ): Observable<WebhookDto> {
     return this.webhookStorage.fetchWebhook(new Reference(webhookId)).pipe(
       // TODO: check auth?
-      // TODO: map to 404 if undefined
-      map((webhook) => this.getWebhookDto(webhook as any)),
+      map((webhook) => {
+        if (!webhook) {
+          throw new BadRequestException();
+        }
+        return this.mapToDto(webhook);
+      }),
     );
   }
 
   @Post()
   createWebhook(
     @Headers('Authorization') token: string,
-    @Body() requestBody: WebhookConfigurationDto,
-  ): Observable<string> {
-    return this.webhookStorage.createWebhook(requestBody).pipe(
-      // TODO: check auth?
-      // TODO: map errors to response codes
-      map((webhookRef: Reference) => webhookRef.id),
-    );
+    @Body() requestBody: CreateWebhookDto,
+  ): Observable<Reference> {
+    return this.webhookStorage
+      .createWebhook({
+        label: requestBody.label,
+        target: requestBody.target,
+        authentication: requestBody.authentication,
+      })
+      .pipe(
+        // TODO: check auth?
+        // TODO: map errors to response codes
+        map((webhookRef: Reference) => webhookRef),
+      );
   }
 
   @Post('/:webhookId/subscribe/report/:reportId')
@@ -61,17 +72,13 @@ export class WebhookController {
     @Headers('Authorization') token: string,
     @Param('webhookId') webhookId: string,
     @Param('reportId') reportId: string,
-  ): Observable<void> {
-    return this.notificationService
-      .registerForReportEvents(
-        new Reference(webhookId),
-        new Reference(reportId),
-      )
-      .pipe
-      // TODO: check auth?
-      // TODO: map errors to response codes
-      // TODO: map to 200 Response without body (otherwise service throws error)
-      ();
+  ): Observable<null> {
+    return this.notificationService.registerForReportEvents(
+      new Reference(webhookId),
+      new Reference(reportId),
+    );
+    // TODO: check auth?
+    // TODO: map errors to response codes
   }
 
   @Delete('/:webhookId/subscribe/report/:reportId')
@@ -79,20 +86,21 @@ export class WebhookController {
     @Headers('Authorization') token: string,
     @Param('webhookId') webhookId: string,
     @Param('reportId') reportId: string,
-  ): Observable<void> {
-    return this.notificationService
-      .unregisterForReportEvents(
-        new Reference(webhookId),
-        new Reference(reportId),
-      )
-      .pipe
-      // TODO: check auth?
-      // TODO: map errors to response codes
-      // TODO: map to 200 Response without body (otherwise service throws error)
-      ();
+  ): Observable<null> {
+    return this.notificationService.unregisterForReportEvents(
+      new Reference(webhookId),
+      new Reference(reportId),
+    );
+    // TODO: check auth?
+    // TODO: map errors to response codes
   }
 
-  private getWebhookDto(webhook: Webhook): WebhookDto {
-    return webhook;
+  private mapToDto(webhook: Webhook): WebhookDto {
+    return {
+      id: webhook.id,
+      name: webhook.label,
+      target: webhook.target,
+      authenticationType: webhook.authentication.type,
+    };
   }
 }

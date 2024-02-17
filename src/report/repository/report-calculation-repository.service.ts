@@ -59,32 +59,30 @@ export class ReportCalculationRepository {
   storeCalculation(
     reportCalculation: ReportCalculation,
   ): Observable<DocSuccess> {
-    return this.couchDbClient.putDatabaseDocument(
-      this.databaseUrl,
-      this.databaseName,
-      reportCalculation.id,
-      reportCalculation,
-      {
+    return this.couchDbClient.putDatabaseDocument({
+      documentId: `${this.databaseUrl}/${this.databaseName}/${reportCalculation.id}`,
+      body: reportCalculation,
+      config: {
         headers: {
           Authorization: this.authHeaderValue,
         },
       },
-    );
+    });
   }
 
   fetchCalculations(): Observable<FetchReportCalculationsResponse> {
     return this.couchDbClient.getDatabaseDocument<FetchReportCalculationsResponse>(
-      this.databaseUrl,
-      this.databaseName,
-      '_all_docs',
       {
-        params: {
-          include_docs: true,
-          start_key: '"ReportCalculation"',
-          end_key: '"ReportCalculation' + '\ufff0"', // ufff0 -> high value unicode character
-        },
-        headers: {
-          Authorization: this.authHeaderValue,
+        documentId: `${this.databaseUrl}/${this.databaseName}/_all_docs`,
+        config: {
+          params: {
+            include_docs: true,
+            start_key: '"ReportCalculation"',
+            end_key: '"ReportCalculation' + '\ufff0"', // ufff0 -> high value unicode character
+          },
+          headers: {
+            Authorization: this.authHeaderValue,
+          },
         },
       },
     );
@@ -94,16 +92,14 @@ export class ReportCalculationRepository {
     calculationRef: Reference,
   ): Observable<ReportCalculation | undefined> {
     return this.couchDbClient
-      .getDatabaseDocument<ReportCalculation>(
-        this.databaseUrl,
-        this.databaseName,
-        calculationRef.id,
-        {
+      .getDatabaseDocument<ReportCalculation>({
+        documentId: `${this.databaseUrl}/${this.databaseName}/${calculationRef.id}`,
+        config: {
           headers: {
             Authorization: this.authHeaderValue,
           },
         },
-      )
+      })
       .pipe(
         map((rawReportCalculation) =>
           new ReportCalculation(
@@ -126,9 +122,13 @@ export class ReportCalculationRepository {
 
   storeData(data: ReportData): Observable<ReportData> {
     return this.couchDbClient
-      .putDatabaseDocument(this.databaseUrl, this.databaseName, data.id, data, {
-        headers: {
-          Authorization: this.authHeaderValue,
+      .putDatabaseDocument({
+        documentId: `${this.databaseUrl}/${this.databaseName}/${data.id}`,
+        body: data,
+        config: {
+          headers: {
+            Authorization: this.authHeaderValue,
+          },
         },
       })
       .pipe(
@@ -139,21 +139,19 @@ export class ReportCalculationRepository {
           }
 
           calculation.setOutcome({
-            result_hash: data.asHash(),
+            result_hash: data.getDataHash(),
           });
 
           return this.couchDbClient
-            .putDatabaseDocument(
-              this.databaseUrl,
-              this.databaseName,
-              calculation.id,
-              calculation,
-              {
+            .putDatabaseDocument({
+              documentId: `${this.databaseUrl}/${this.databaseName}/${calculation.id}`,
+              body: calculation,
+              config: {
                 headers: {
                   Authorization: this.authHeaderValue,
                 },
               },
-            )
+            })
             .pipe(map(() => data));
         }),
       );
@@ -170,17 +168,17 @@ export class ReportCalculationRepository {
       }),
       switchMap((calculationId) => {
         this.couchDbClient.getDatabaseDocument<FetchReportCalculationsResponse>(
-          this.databaseUrl,
-          this.databaseName,
-          '_all_docs',
           {
-            params: {
-              include_docs: true,
-              start_key: '"' + calculationId + '"',
-              end_key: '"ReportCalculation' + '\ufff0"', // ufff0 -> high value unicode character
-            },
-            headers: {
-              Authorization: this.authHeaderValue,
+            documentId: `${this.databaseUrl}/${this.databaseName}/_all_docs`,
+            config: {
+              params: {
+                include_docs: true,
+                start_key: '"' + calculationId + '"',
+                end_key: '"ReportCalculation' + '\ufff0"', // ufff0 -> high value unicode character
+              },
+              headers: {
+                Authorization: this.authHeaderValue,
+              },
             },
           },
         );

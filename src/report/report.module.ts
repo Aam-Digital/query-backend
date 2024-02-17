@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DefaultReportStorage } from './storage/report-storage.service';
 import { ReportController } from './controller/report.controller';
-import { HttpModule, HttpService } from '@nestjs/axios';
+import { HttpModule } from '@nestjs/axios';
 import { ReportRepository } from './repository/report-repository.service';
 import { ReportCalculationRepository } from './repository/report-calculation-repository.service';
 import { ReportCalculationController } from './controller/report-calculation.controller';
@@ -28,7 +28,7 @@ import { CouchDbClient } from '../couchdb/couch-db-client.service';
     {
       provide: CouchSqsClient,
       useFactory: CouchSqsClientFactory,
-      inject: [HttpService, ConfigService],
+      inject: [ConfigService],
     },
     CreateReportCalculationUseCase,
   ],

@@ -1,11 +1,23 @@
-export interface WebhookDto {}
-
-export interface WebhookConfigurationDto {
+export interface WebhookDto {
+  id: string;
   name: string;
-  method: 'GET' | 'POST';
-  targetUrl: string;
+  target: {
+    method: 'GET' | 'POST';
+    url: string;
+  };
   authenticationType: 'API_KEY';
-  authentication: ApiKeyAuthConfig;
+}
+
+export interface CreateWebhookDto {
+  label: string;
+  target: {
+    method: 'GET' | 'POST';
+    url: string;
+  };
+  authentication: {
+    type: 'API_KEY';
+    apiKey: string;
+  };
 }
 
 export interface ApiKeyAuthConfig {

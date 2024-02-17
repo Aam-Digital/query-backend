@@ -1,4 +1,4 @@
-# Query Backend
+# Query Back'end
 
 This service allows to run SQL queries on the database.
 In particular, this service allows users with limited permissions to see reports of aggregated statistics across all data (e.g. a supervisor could analyse reports without having access to possibly confidential details of participants or notes).

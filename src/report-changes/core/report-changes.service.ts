@@ -91,7 +91,6 @@ export class ReportChangesService {
       .subscribe((affectedReports: ReportDataChangeEvent[]) => {
         affectedReports.forEach((event) => {
           this.notificationService.triggerNotification(event);
-          console.log('Report change detected:', event);
         });
       });
   }

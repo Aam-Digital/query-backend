@@ -7,6 +7,12 @@ export interface CouchDbRow<T> {
   doc: T;
 }
 
+export interface CouchDbRows<T> {
+  total_rows: number;
+  offset: number;
+  rows: T[];
+}
+
 export class DocSuccess {
   ok: boolean;
   id: string;
