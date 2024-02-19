@@ -90,20 +90,22 @@ export class WebhookStorage {
    * @param request
    */
   createWebhook(request: CreateWebhookRequest): Observable<Reference> {
-    return this.webhookRepository.storeWebhook({
-      id: `Webhook:${uuidv4()}`,
-      label: request.label,
-      target: request.target,
-      authentication: {
-        type: 'API_KEY',
-        apiKey: this.cryptoService.encrypt(request.authentication.apiKey),
-      },
-      owner: {
-        type: 'USER',
-        id: 'todo-user-id-here',
-      },
-      reportSubscriptions: [],
-    });
+    return this.webhookRepository
+      .storeWebhook({
+        id: `Webhook:${uuidv4()}`,
+        label: request.label,
+        target: request.target,
+        authentication: {
+          type: 'API_KEY',
+          apiKey: this.cryptoService.encrypt(request.authentication.apiKey),
+        },
+        owner: {
+          type: 'USER',
+          id: 'todo-user-id-here',
+        },
+        reportSubscriptions: [],
+      })
+      .pipe(map((value) => new Reference(value.id)));
   }
 
   private mapFromEntity(entity: WebhookEntity): Webhook {

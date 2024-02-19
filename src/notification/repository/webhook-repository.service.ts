@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { catchError, map, Observable } from 'rxjs';
 import { Reference } from '../../domain/reference';
 import { CouchDbClient } from '../../couchdb/couch-db-client.service';
-import { CouchDbRow, CouchDbRows } from '../../couchdb/dtos';
+import { CouchDbRow, CouchDbRows, DocSuccess } from '../../couchdb/dtos';
 
 export interface WebhookEntity {
   id: string;
@@ -61,8 +61,8 @@ export class WebhookRepository {
       );
   }
 
-  storeWebhook(webhook: WebhookEntity): Observable<Reference> {
-    return this.http.putDatabaseDocument({
+  storeWebhook(webhook: WebhookEntity): Observable<DocSuccess> {
+    return this.http.putDatabaseDocument<DocSuccess>({
       documentId: webhook.id,
       body: webhook,
       config: {},
