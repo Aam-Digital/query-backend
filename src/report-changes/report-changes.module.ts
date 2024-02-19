@@ -1,19 +1,35 @@
 import { Module } from '@nestjs/common';
 import { ReportChangesService } from './core/report-changes.service';
-import { CouchdbChangesService } from './storage/couchdb-changes.service';
+import { CouchDbChangesService } from './storage/couch-db-changes.service';
 import { NotificationModule } from '../notification/notification.module';
 import { ReportModule } from '../report/report.module';
-import { CouchDbClient } from '../couchdb/couch-db-client.service';
-import { HttpModule } from '@nestjs/axios';
-import { TestController } from './test-controller';
+import {
+  CouchdbChangesServiceFactory,
+  ReportChangesServiceFactory,
+} from './di/report-changes-configuration';
+import { ConfigService } from '@nestjs/config';
+import { NotificationService } from '../notification/core/notification.service';
+import { ReportingStorage } from '../report/storage/reporting-storage.service';
+import { CreateReportCalculationUseCase } from '../report/core/use-cases/create-report-calculation-use-case.service';
 
 @Module({
-  controllers: [TestController],
-  imports: [NotificationModule, ReportModule, HttpModule],
+  imports: [NotificationModule, ReportModule],
   providers: [
-    ReportChangesService,
-    CouchdbChangesService,
-    CouchDbClient, // TODO: pack this into a CouchDbModule together with HttpModule import etc.
+    {
+      provide: ReportChangesService,
+      useFactory: ReportChangesServiceFactory,
+      inject: [
+        NotificationService,
+        ReportingStorage,
+        CouchDbChangesService,
+        CreateReportCalculationUseCase,
+      ],
+    },
+    {
+      provide: CouchDbChangesService,
+      useFactory: CouchdbChangesServiceFactory,
+      inject: [ConfigService],
+    },
   ],
   exports: [ReportChangesService],
 })

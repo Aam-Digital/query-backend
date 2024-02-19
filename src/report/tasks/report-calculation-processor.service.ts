@@ -4,7 +4,7 @@ import {
   ReportCalculation,
   ReportCalculationStatus,
 } from '../../domain/report-calculation';
-import { DefaultReportStorage } from '../storage/report-storage.service';
+import { ReportingStorage } from '../storage/reporting-storage.service';
 import { SqsReportCalculator } from '../core/sqs-report-calculator.service';
 import { ReportData } from '../../domain/report-data';
 
@@ -13,7 +13,7 @@ export class ReportCalculationProcessor {
   private readonly logger = new Logger(ReportCalculationProcessor.name);
 
   constructor(
-    private reportStorage: DefaultReportStorage,
+    private reportStorage: ReportingStorage,
     private reportCalculator: SqsReportCalculator,
   ) {}
 

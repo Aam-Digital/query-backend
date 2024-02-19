@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,16 +7,15 @@ import { ReportCalculator } from './report-calculator';
 import { ReportData } from '../../domain/report-data';
 import { map, mergeAll, Observable, switchMap } from 'rxjs';
 import { ReportCalculation } from '../../domain/report-calculation';
-import { DefaultReportStorage } from '../storage/report-storage.service';
+import { ReportingStorage } from '../storage/reporting-storage.service';
 import { CouchSqsClient } from '../../couchdb/couch-sqs.client';
 import { v4 as uuidv4 } from 'uuid';
 import { Reference } from '../../domain/reference';
 
-@Injectable()
 export class SqsReportCalculator implements ReportCalculator {
   constructor(
     private sqsClient: CouchSqsClient,
-    private reportStorage: DefaultReportStorage,
+    private reportStorage: ReportingStorage,
   ) {}
 
   calculate(reportCalculation: ReportCalculation): Observable<ReportData> {
@@ -37,7 +35,7 @@ export class SqsReportCalculator implements ReportCalculator {
 
         return report.queries.flatMap((query) => {
           return this.sqsClient
-            .executeQuery('/app/_design/sqlite:config', {
+            .executeQuery({
               query: query,
               args: [], // TODO pass args here
             })

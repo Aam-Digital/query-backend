@@ -6,6 +6,7 @@ export class CouchSqsClientConfig {
   BASE_URL = '';
   BASIC_AUTH_USER = '';
   BASIC_AUTH_PASSWORD = '';
+  SCHEMA_DESIGN_CONFIG = '';
 }
 
 export interface QueryRequest {
@@ -16,9 +17,15 @@ export interface QueryRequest {
 export class CouchSqsClient {
   private readonly logger: Logger = new Logger(CouchSqsClient.name);
 
-  constructor(private httpService: HttpService) {}
+  constructor(
+    private httpService: HttpService,
+    private config: CouchSqsClientConfig,
+  ) {}
 
-  executeQuery(path: string, query: QueryRequest): Observable<string> {
+  executeQuery(
+    query: QueryRequest,
+    path: string = this.config.SCHEMA_DESIGN_CONFIG,
+  ): Observable<string> {
     return this.httpService.post(path, query).pipe(
       map((response) => response.data),
       catchError((err) => {

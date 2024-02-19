@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CryptoService } from '../../crypto/core/crypto.service';
 import { NotFoundException } from '@nestjs/common';
 
+// todo interface
 export class WebhookStorage {
   constructor(
     private webhookRepository: WebhookRepository,

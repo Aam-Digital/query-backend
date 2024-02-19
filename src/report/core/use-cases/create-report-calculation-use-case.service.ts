@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Reference } from '../../../domain/reference';
 import { filter, map, merge, Observable, take } from 'rxjs';
 import {
@@ -7,11 +6,10 @@ import {
 } from '../../../domain/report-calculation';
 import { v4 as uuidv4 } from 'uuid';
 import { Report } from '../../../domain/report';
-import { DefaultReportStorage } from '../../storage/report-storage.service';
+import { ReportingStorage } from '../../storage/reporting-storage.service';
 
-@Injectable()
 export class CreateReportCalculationUseCase {
-  constructor(private reportStorage: DefaultReportStorage) {}
+  constructor(private reportStorage: ReportingStorage) {}
 
   startReportCalculation(
     report: Report,

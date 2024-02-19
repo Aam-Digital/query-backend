@@ -1,13 +1,11 @@
 import {
   ForbiddenException,
-  Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
 import { catchError, map, Observable } from 'rxjs';
 import { CouchDbRow } from '../../couchdb/dtos';
+import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 
 export interface ReportDoc {
   _id: string;
@@ -31,38 +29,31 @@ interface FetchReportsResponse {
   rows: CouchDbRow<ReportDoc>[];
 }
 
-@Injectable()
 export class ReportRepository {
-  private dbUrl: string = this.configService.getOrThrow('DATABASE_URL');
-  private databaseUser: string = this.configService.getOrThrow('DATABASE_USER');
-  private databasePassword: string =
-    this.configService.getOrThrow('DATABASE_PASSWORD');
+  constructor(private couchDbClient: CouchDbClient) {}
 
-  private authHeaderValue: string;
+  fetchReports(authToken?: string): Observable<FetchReportsResponse> {
+    const config: any = {
+      params: {
+        include_docs: true,
+        startkey: '"ReportConfig:"',
+        endkey: '"ReportConfig:' + '\ufff0"',
+      },
+    };
 
-  constructor(private http: HttpService, private configService: ConfigService) {
-    const authHeader = Buffer.from(
-      `${this.databaseUser}:${this.databasePassword}`,
-    ).toString('base64');
-    this.authHeaderValue = `Basic ${authHeader}`;
-  }
+    if (authToken) {
+      config.headers = {
+        Authorization: authToken,
+      };
+    }
 
-  fetchReports(
-    authToken: string = this.authHeaderValue,
-  ): Observable<FetchReportsResponse> {
-    return this.http
-      .get<FetchReportsResponse>(`${this.dbUrl}/app/_all_docs`, {
-        params: {
-          include_docs: true,
-          startkey: '"ReportConfig:"',
-          endkey: '"ReportConfig:' + '\ufff0"',
-        },
-        headers: {
-          Authorization: authToken,
-        },
+    return this.couchDbClient
+      .getDatabaseDocument<FetchReportsResponse>({
+        documentId: `_all_docs`,
+        config: config,
       })
       .pipe(
-        map((value) => value.data),
+        map((value) => value),
         catchError((err, caught) => {
           this.handleError(err);
           throw caught;
@@ -72,16 +63,23 @@ export class ReportRepository {
 
   fetchReport(
     reportId: string,
-    authToken: string = this.authHeaderValue,
+    authToken?: string | undefined,
   ): Observable<ReportDoc> {
-    return this.http
-      .get<ReportDoc>(`${this.dbUrl}/app/${reportId}`, {
-        headers: {
-          Authorization: authToken,
-        },
+    const config: any = {};
+
+    if (authToken) {
+      config.headers = {
+        Authorization: authToken,
+      };
+    }
+
+    return this.couchDbClient
+      .getDatabaseDocument<ReportDoc>({
+        documentId: reportId,
+        config: config,
       })
       .pipe(
-        map((value) => value.data),
+        map((value) => value),
         catchError((err, caught) => {
           this.handleError(err);
           throw caught;

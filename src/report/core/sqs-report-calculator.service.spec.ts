@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SqsReportCalculator } from './sqs-report-calculator.service';
-import { DefaultReportStorage } from '../storage/report-storage.service';
+import { ReportingStorage } from '../storage/reporting-storage.service';
 import { CouchSqsClient } from '../../couchdb/couch-sqs.client';
 
 describe('SqsReportCalculatorService', () => {
@@ -14,7 +14,7 @@ describe('SqsReportCalculatorService', () => {
       providers: [
         SqsReportCalculator,
         { provide: CouchSqsClient, useValue: mockCouchSqsClient },
-        { provide: DefaultReportStorage, useValue: mockReportStorage },
+        { provide: ReportingStorage, useValue: mockReportStorage },
       ],
     }).compile();
 

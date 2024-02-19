@@ -1,6 +1,3 @@
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
 export class UrlParser {
   getPlaceholder(url: string): string[] {
     const pattern = /<([^<>]+)>/g;

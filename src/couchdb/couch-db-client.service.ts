@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { AxiosHeaders } from 'axios';
@@ -11,22 +11,14 @@ export class CouchDbClientConfig {
   BASIC_AUTH_PASSWORD = '';
 }
 
-@Injectable()
 export class CouchDbClient {
   private readonly logger = new Logger(CouchDbClient.name);
 
   constructor(private httpService: HttpService) {}
 
-  changes(
-    databaseUrl: string,
-    databaseName: string,
-    config?: any,
-  ): Observable<CouchDbChangesResponse> {
+  changes(request: { config?: any }): Observable<CouchDbChangesResponse> {
     return this.httpService
-      .get<CouchDbChangesResponse>(
-        `${databaseUrl}/${databaseName}/_changes`,
-        config,
-      )
+      .get<CouchDbChangesResponse>(`/_changes`, request.config)
       .pipe(
         map((response) => {
           return response.data;
@@ -66,14 +58,9 @@ export class CouchDbClient {
       );
   }
 
-  find<T>(
-    databaseUrl: string,
-    databaseName: string,
-    body: any,
-    config?: any,
-  ): Observable<T> {
+  find<T>(request: { query: object; config: any }): Observable<T> {
     return this.httpService
-      .post<T>(`${databaseUrl}/${databaseName}/_find`, body, config)
+      .post<T>(`_find`, request.query, request.config)
       .pipe(
         map((response) => {
           return response.data;

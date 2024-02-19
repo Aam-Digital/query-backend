@@ -1,7 +1,22 @@
-COUCH_SQS_CLIENT_CONFIG:
-  BASE_URL: http://localhost:4984
-
 NOTIFICATION:
   COUCH_DB_CLIENT_CONFIG:
     BASE_URL: http://localhost:5984
     TARGET_DATABASE: notification-webhook
+
+REPORT:
+  COUCH_DB_CLIENT_CONFIG:
+    REPORT:
+      BASE_URL: http://localhost:5984
+      TARGET_DATABASE: app
+    REPORT_CALCULATION:
+      BASE_URL: http://localhost:5984
+      TARGET_DATABASE: report-calculation
+  COUCH_SQS_CLIENT_CONFIG:
+    BASE_URL: http://localhost:4984
+    SCHEMA_DESIGN_CONFIG: /app/_design/sqlite:config
+
+REPORT_CHANGES:
+  COUCH_DB_CLIENT_CONFIG:
+    BASE_URL: http://localhost:5984
+    TARGET_DATABASE: app
+  POLL_INTERVAL: 10000

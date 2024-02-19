@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import {
   BehaviorSubject,
-  catchError,
   map,
   mergeMap,
   Observable,
@@ -18,7 +16,6 @@ import { UrlParser } from './url-parser.service';
 /**
  * Manage core subscriptions and delivering events to subscribers.
  */
-@Injectable()
 export class NotificationService {
   private _activeReports: BehaviorSubject<Reference[]> = new BehaviorSubject(
     [] as Reference[],
@@ -71,34 +68,36 @@ export class NotificationService {
               reportId: event.report.id,
             });
 
-            return this.httpService
-              .request<any>({
-                method: webhook.target.method,
-                url: url,
-                headers: {
-                  'X-API-KEY': webhook.authentication.apiKey,
-                },
-                timeout: 5000,
-              })
-              .pipe(
-                map((response) => {
-                  console.log('axios response', response);
-                }),
-                catchError((err) => {
-                  console.log('could not send notification to webhook', err);
-                  throw err;
-                }),
-              );
+            return this.httpService.request<any>({
+              method: webhook.target.method,
+              url: url,
+              data: {
+                calculation_id: event.calculation.id,
+              },
+              headers: {
+                Authorization: `Token ${webhook.authentication.apiKey}`,
+              },
+              timeout: 5000,
+            });
           }),
         ),
         zipAll(),
       )
       .subscribe({
         next: () => {
-          console.log('webhook send');
+          console.log('webhook called successfully');
         },
         error: (err) => {
-          console.log(err);
+          console.log('could not send notification to webhook', {
+            error: {
+              code: err.code,
+              response: {
+                status: err.response.status,
+                statusText: err.response.statusText,
+                data: err.response.data,
+              },
+            },
+          });
         },
         complete: () => {
           console.log('webhook trigger completed');

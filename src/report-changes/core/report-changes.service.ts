@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
 import { ReportChangeDetector } from './report-change-detector';
 import { NotificationService } from '../../notification/core/notification.service';
 import { Reference } from '../../domain/reference';
 import { ReportDataChangeEvent } from '../../domain/report-data-change-event';
 import { ReportCalculationOutcomeSuccess } from '../../domain/report-calculation';
 import { Report } from '../../domain/report';
-import { CouchdbChangesService } from '../storage/couchdb-changes.service';
-import { DefaultReportStorage } from '../../report/storage/report-storage.service';
+import { CouchDbChangesService } from '../storage/couch-db-changes.service';
+import { ReportingStorage } from '../../report/storage/reporting-storage.service';
 import { filter, map, Observable, switchMap, tap, zip } from 'rxjs';
 import {
   CreateReportCalculationFailed,
@@ -17,14 +16,13 @@ import {
   DocChangeDetails,
 } from '../storage/database-changes.service';
 
-@Injectable()
 export class ReportChangesService {
   private reportMonitors = new Map<string, ReportChangeDetector>();
 
   constructor(
     private notificationService: NotificationService,
-    private reportStorage: DefaultReportStorage,
-    private couchdbChangesRepository: CouchdbChangesService,
+    private reportStorage: ReportingStorage,
+    private couchdbChangesRepository: CouchDbChangesService,
     private createReportCalculation: CreateReportCalculationUseCase,
   ) {
     this.notificationService

@@ -7,14 +7,14 @@ import {
   switchMap,
   zipAll,
 } from 'rxjs';
-import { DefaultReportStorage } from '../storage/report-storage.service';
+import { ReportingStorage } from '../storage/reporting-storage.service';
 import { ReportDto } from './dtos';
 import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
 
 @Controller('/api/v1/reporting')
 export class ReportController {
-  constructor(private reportStorage: DefaultReportStorage) {}
+  constructor(private reportStorage: ReportingStorage) {}
 
   @Get('/report')
   fetchReports(
