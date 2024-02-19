@@ -13,6 +13,7 @@ import { ReportDataChangeEvent } from '../../domain/report-data-change-event';
 import { WebhookStorage } from '../storage/webhook-storage.service';
 import { HttpService } from '@nestjs/axios';
 import { Webhook } from '../domain/webhook';
+import { UrlParser } from './url-parser.service';
 
 /**
  * Manage core subscriptions and delivering events to subscribers.
@@ -26,6 +27,7 @@ export class NotificationService {
   constructor(
     private webhookStorage: WebhookStorage,
     private httpService: HttpService,
+    private urlParser: UrlParser,
   ) {}
 
   /**
@@ -63,11 +65,16 @@ export class NotificationService {
           ),
         ),
         mergeMap((webhooks) =>
-          webhooks.map((webhook) =>
-            this.httpService
+          webhooks.map((webhook) => {
+            // todo: support more placeholder and better checks
+            const url = this.urlParser.replacePlaceholder(webhook.target.url, {
+              reportId: event.report.id,
+            });
+
+            return this.httpService
               .request<any>({
                 method: webhook.target.method,
-                url: webhook.target.url,
+                url: url,
                 headers: {
                   'X-API-KEY': webhook.authentication.apiKey,
                 },
@@ -81,13 +88,13 @@ export class NotificationService {
                   console.log('could not send notification to webhook', err);
                   throw err;
                 }),
-              ),
-          ),
+              );
+          }),
         ),
         zipAll(),
       )
       .subscribe({
-        next: (value) => {
+        next: () => {
           console.log('webhook send');
         },
         error: (err) => {
