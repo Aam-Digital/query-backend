@@ -28,7 +28,7 @@ export class ReportData {
   asHash(): string {
     return crypto
       .createHash('sha256')
-      .update(JSON.stringify(this))
+      .update(JSON.stringify(this.data))
       .digest('hex');
   }
 }

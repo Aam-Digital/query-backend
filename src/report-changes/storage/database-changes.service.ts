@@ -6,7 +6,23 @@ import { CouchDbChangeResult } from '../../couchdb/dtos';
  */
 export abstract class DatabaseChangesService {
   abstract subscribeToAllNewChanges(): Observable<DatabaseChangeResult[]>;
+
+  abstract subscribeToAllNewChangesWithDocs(): Observable<DocChangeDetails>;
 }
 
-// TODO: don't expose the CouchDb specific changes interface, map this to domain interfaces (maybe use DocChangeDetails)?
 export type DatabaseChangeResult = CouchDbChangeResult;
+
+export interface DocChangeDetails {
+  change: DatabaseChangeResult;
+  previousDoc: EntityDoc | undefined;
+  newDoc: EntityDoc;
+}
+
+/**
+ * A doc in the database representing an entity managed in the frontend.
+ */
+export interface EntityDoc {
+  _id: string;
+
+  [key: string]: any;
+}

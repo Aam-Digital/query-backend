@@ -1,6 +1,10 @@
-import { EntityDoc, ReportChangeDetector } from './report-change-detector';
+import { ReportChangeDetector } from './report-change-detector';
 import { Report } from '../../domain/report';
-import { DocChangeDetails } from './report-changes.service';
+
+import {
+  DocChangeDetails,
+  EntityDoc,
+} from '../storage/database-changes.service';
 
 describe('ReportChangeDetector', () => {
   function testReportChangeDetection(
@@ -21,8 +25,8 @@ describe('ReportChangeDetector', () => {
           changes: [],
           seq: '',
         },
-        new: newDoc,
-        previous: newDoc,
+        newDoc: newDoc,
+        previousDoc: newDoc,
       };
       expect(service.affectsReport(mockedDocChange)).toBe(expectedResult);
     }

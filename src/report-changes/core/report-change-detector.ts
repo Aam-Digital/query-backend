@@ -1,5 +1,6 @@
 import { Report } from '../../domain/report';
-import { DocChangeDetails } from './report-changes.service';
+
+import { DocChangeDetails } from '../storage/database-changes.service';
 
 /**
  * Simple class encapsulating the logic to determine if a specific report is affected by a change in the database.
@@ -42,13 +43,4 @@ export class ReportChangeDetector {
     // TODO: better detection if doc affects report
     return true;
   }
-}
-
-/**
- * A doc in the database representing an entity managed in the frontend.
- */
-export interface EntityDoc {
-  _id: string;
-
-  [key: string]: any;
 }
