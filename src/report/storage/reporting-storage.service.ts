@@ -1,9 +1,9 @@
 import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
-import { ReportStorage } from '../core/report-storage';
+import { IReportStorage } from '../core/i-report-storage';
 import { ReportRepository } from '../repository/report-repository.service';
 import { map, Observable, Subject, switchMap, tap } from 'rxjs';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import {
   ReportCalculation,
   ReportCalculationStatus,
@@ -14,8 +14,7 @@ import {
 } from '../repository/report-calculation-repository.service';
 import { ReportData } from '../../domain/report-data';
 
-@Injectable()
-export class DefaultReportStorage implements ReportStorage {
+export class ReportingStorage implements IReportStorage {
   constructor(
     private reportRepository: ReportRepository,
     private reportCalculationRepository: ReportCalculationRepository,

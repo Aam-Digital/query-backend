@@ -1,14 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CouchdbChangesService } from './couchdb-changes.service';
-import { HttpModule } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
-import { CouchDbClient } from '../../couchdb/couch-db-client.service';
+import { CouchDbChangesService } from './couch-db-changes.service';
 import { finalize, of } from 'rxjs';
 import { CouchDbChangesResponse } from '../../couchdb/dtos';
 import { DatabaseChangeResult } from './database-changes.service';
+import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 
-describe('CouchdbChangesService', () => {
-  let service: CouchdbChangesService;
+describe('CouchDbChangesService', () => {
+  let service: CouchDbChangesService;
 
   let mockCouchdbChanges: jest.Mock;
 
@@ -21,6 +19,7 @@ describe('CouchdbChangesService', () => {
 
   beforeEach(async () => {
     changesRequestCounter = 0;
+
     mockCouchdbChanges = jest.fn().mockImplementation(() => {
       changesRequestCounter++;
       return of({
@@ -31,27 +30,26 @@ describe('CouchdbChangesService', () => {
     });
 
     const module: TestingModule = await Test.createTestingModule({
-      imports: [HttpModule],
+      imports: [],
       providers: [
-        CouchdbChangesService,
         { provide: CouchDbClient, useValue: { changes: mockCouchdbChanges } },
         {
-          provide: ConfigService,
-          useValue: {
-            getOrThrow: jest.fn(() => {
-              return 'foo';
-            }),
+          provide: CouchDbChangesService,
+          useFactory: (couchdbClient) => {
+            return new CouchDbChangesService(couchdbClient, {
+              POLL_INTERVAL: '10000',
+            });
           },
+          inject: [CouchDbClient],
         },
       ],
     }).compile();
 
-    service = module.get<CouchdbChangesService>(CouchdbChangesService);
-  });
+    service = module.get<CouchDbChangesService>(CouchDbChangesService);
 
-  beforeEach(() => {
     jest.useFakeTimers();
   });
+
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();

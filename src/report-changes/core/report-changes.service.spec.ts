@@ -3,8 +3,8 @@ import { ReportChangesService } from './report-changes.service';
 import { BehaviorSubject, map, of, Subject } from 'rxjs';
 import { NotificationService } from '../../notification/core/notification.service';
 import { Reference } from '../../domain/reference';
-import { DefaultReportStorage } from '../../report/storage/report-storage.service';
-import { CouchdbChangesService } from '../storage/couchdb-changes.service';
+import { ReportingStorage } from '../../report/storage/reporting-storage.service';
+import { CouchDbChangesService } from '../storage/couch-db-changes.service';
 import { CreateReportCalculationUseCase } from '../../report/core/use-cases/create-report-calculation-use-case.service';
 import { DatabaseChangeResult } from '../storage/database-changes.service';
 
@@ -31,11 +31,11 @@ describe('ReportChangesService', () => {
         ReportChangesService,
         { provide: NotificationService, useValue: mockNotificationService },
         {
-          provide: DefaultReportStorage,
+          provide: ReportingStorage,
           useValue: { fetchReport: () => of() },
         },
         {
-          provide: CouchdbChangesService,
+          provide: CouchDbChangesService,
           useValue: { subscribeToAllNewChanges: () => mockedChangesStream },
         },
         {

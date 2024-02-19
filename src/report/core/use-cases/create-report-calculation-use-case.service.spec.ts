@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateReportCalculationUseCase } from './create-report-calculation-use-case.service';
-import { DefaultReportStorage } from '../../storage/report-storage.service';
+import { ReportingStorage } from '../../storage/reporting-storage.service';
 
 describe('CreateReportCalculationUseCaseService', () => {
   let service: CreateReportCalculationUseCase;
@@ -9,7 +9,7 @@ describe('CreateReportCalculationUseCaseService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateReportCalculationUseCase,
-        { provide: DefaultReportStorage, useValue: {} },
+        { provide: ReportingStorage, useValue: {} },
       ],
     }).compile();
 

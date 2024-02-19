@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReportController } from './report.controller';
-import { DefaultReportStorage } from '../storage/report-storage.service';
+import { ReportingStorage } from '../storage/reporting-storage.service';
 import { ReportRepository } from '../repository/report-repository.service';
 import { ReportCalculationRepository } from '../repository/report-calculation-repository.service';
 import { HttpModule } from '@nestjs/axios';
@@ -15,7 +15,7 @@ describe('ReportController', () => {
       imports: [HttpModule],
       providers: [
         CouchDbClient,
-        DefaultReportStorage,
+        ReportingStorage,
         ReportController,
         ReportRepository,
         ReportCalculationRepository,

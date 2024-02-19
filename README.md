@@ -1,4 +1,6 @@
-# Query Backend
+# Aam Digital - Query Backend
+An API / microservice to calculate "reports" (e.g. statistical, summarized indicators) based on entities in the primary database of an Aam Digital instance.
+
 
 This service allows to run SQL queries on the database.
 In particular, this service allows users with limited permissions to see reports of aggregated statistics across all data (e.g. a supervisor could analyse reports without having access to possibly confidential details of participants or notes).
@@ -8,12 +10,8 @@ See the [ndb-setup repo](https://github.com/Aam-Digital/ndb-setup) for full depl
 
 To use this you need a running [CouchDB](https://docs.couchdb.org/en/stable/) and [structured query server (SQS)](https://neighbourhood.ie/products-and-services/structured-query-server).
 
-The following variables might need to be configured in the `.env` file:
-- `DATABASE_URL` URL of the `CouchDB` or [replication backend](https://github.com/Aam-Digital/replication-backend)
-- `QUERY_URL` URL of the SQS
-- `SCHEMA_CONFIG_ID` database ID of the document which holds the SQS schema (default `_design/sqlite:config`)
-- `PORT` where the app should listen (default 3000)
-- `SENTRY_DSN` for remote logging
+Config (e.g. database paths and credentials) can be provided as environment variables and/or through an `config/app.yaml` file in the root folder. 
+Secrets should be configured over `.env` files. Check out the example files.
 
 -----
 # API access to reports

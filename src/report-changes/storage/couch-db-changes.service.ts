@@ -1,11 +1,9 @@
 import {
   ForbiddenException,
-  Injectable,
   InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import {
   catchError,
   EMPTY,
@@ -25,44 +23,35 @@ import {
 } from 'rxjs';
 import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 import { CouchDbChangesResponse } from '../../couchdb/dtos';
-import { DatabaseChangeResult, DatabaseChangesService, DocChangeDetails, EntityDoc, } from './database-changes.service';
+import {
+  DatabaseChangeResult,
+  DatabaseChangesService,
+  DocChangeDetails,
+  EntityDoc,
+} from './database-changes.service';
+
+export class CouchDbChangesConfig {
+  POLL_INTERVAL = '';
+}
 
 /**
  * Access _changes from a CouchDB
  */
-@Injectable()
-export class CouchdbChangesService extends DatabaseChangesService {
-  // TODO: centralize this config by refactoring couchdbClient and providing configured clients through DI
-  private dbUrl: string = this.configService.getOrThrow('DATABASE_URL');
-  private databaseName = 'app'; // TODO: move to config and clean up .env, clarifying different DBs there
-  private databaseUser: string = this.configService.getOrThrow('DATABASE_USER');
-  private databasePassword: string =
-    this.configService.getOrThrow('DATABASE_PASSWORD');
-
-  private changesPollInterval: number = Number(
-    this.configService.getOrThrow('CHANGES_POLL_INTERVAL'),
-  );
-
-  private authHeaderValue: string;
-
+export class CouchDbChangesService extends DatabaseChangesService {
   constructor(
     private couchdbClient: CouchDbClient,
-    private configService: ConfigService,
+    private config: CouchDbChangesConfig,
   ) {
     super();
-    const authHeader = Buffer.from(
-      `${this.databaseUser}:${this.databasePassword}`,
-    ).toString('base64');
-    this.authHeaderValue = `Basic ${authHeader}`;
   }
 
-  private changesSubj = new ReplaySubject<DatabaseChangeResult[]>(1);
-  private changesSubscription: Subscription | undefined;
+  private _changesSubj = new ReplaySubject<DatabaseChangeResult[]>(1);
+  private _changesSubscription: Subscription | undefined;
 
   subscribeToAllNewChanges(
-    includeDocs: boolean = false,
+    includeDocs = false,
   ): Observable<DatabaseChangeResult[]> {
-    if (!this.changesSubscription) {
+    if (!this._changesSubscription) {
       let lastSeq = 'now';
       const changesFeed = of({}).pipe(
         mergeMap(() => this.fetchChanges(lastSeq, true, includeDocs)),
@@ -70,22 +59,21 @@ export class CouchdbChangesService extends DatabaseChangesService {
         tap((res) => (lastSeq = res.last_seq)),
         // poll regularly to get latest changes
         repeat({
-          delay: this.changesPollInterval,
+          delay: Number.parseInt(this.config.POLL_INTERVAL),
         }),
-        tap((res) => console.log('incoming couchdb changes', res)),
       );
 
-      this.changesSubscription = changesFeed
+      this._changesSubscription = changesFeed
         .pipe(map((res) => res.results))
-        .subscribe(this.changesSubj);
+        .subscribe(this._changesSubj);
     }
 
-    return this.changesSubj.asObservable().pipe(
+    return this._changesSubj.asObservable().pipe(
       finalize(() => {
-        if (!this.changesSubj.observed) {
+        if (!this._changesSubj.observed) {
           // stop polling
-          this.changesSubscription?.unsubscribe();
-          this.changesSubscription = undefined;
+          this._changesSubscription?.unsubscribe();
+          this._changesSubscription = undefined;
         }
       }),
     );
@@ -94,7 +82,7 @@ export class CouchdbChangesService extends DatabaseChangesService {
   subscribeToAllNewChangesWithDocs(): Observable<DocChangeDetails> {
     return this.subscribeToAllNewChanges(true).pipe(
       mergeAll(),
-      tap((change) => console.log('new couchdb change', change)),
+      tap((change) => console.debug('new couchdb change', change)),
       switchMap((change) =>
         this.getPreviousRevOfDoc(change.id).pipe(
           map((doc) => ({
@@ -104,7 +92,7 @@ export class CouchdbChangesService extends DatabaseChangesService {
           })),
         ),
       ),
-      tap((change) => console.log('new change details', change)),
+      tap((change) => console.debug('new change details', change)),
     );
   }
 
@@ -117,15 +105,12 @@ export class CouchdbChangesService extends DatabaseChangesService {
           return of(undefined);
         }
 
-        return this.couchdbClient.getDatabaseDocument<EntityDoc>(
-          this.dbUrl,
-          this.databaseName,
-          docId,
-          {
+        return this.couchdbClient.getDatabaseDocument<EntityDoc>({
+          documentId: docId,
+          config: {
             params: { rev: previousRev },
-            headers: { Authorization: this.authHeaderValue },
           },
-        );
+        });
       }),
     );
   }
@@ -137,15 +122,12 @@ export class CouchdbChangesService extends DatabaseChangesService {
    */
   private findLastRev(docId: string): Observable<string | undefined> {
     return this.couchdbClient
-      .getDatabaseDocument<EntityDoc | { _revs_info: CouchDbDocRevsInfo }>(
-        this.dbUrl,
-        this.databaseName,
-        docId,
-        {
+      .getDatabaseDocument<EntityDoc | { _revs_info: CouchDbDocRevsInfo }>({
+        documentId: docId,
+        config: {
           params: { revs_info: true },
-          headers: { Authorization: this.authHeaderValue },
         },
-      )
+      })
       .pipe(
         map((doc) => {
           const revsInfo: CouchDbDocRevsInfo = doc._revs_info;
@@ -171,13 +153,12 @@ export class CouchdbChangesService extends DatabaseChangesService {
     includeDocs = false,
   ): Observable<CouchDbChangesResponse> {
     return this.couchdbClient
-      .changes(this.dbUrl, this.databaseName, {
-        params: {
-          since: since,
-          include_docs: includeDocs,
-        },
-        headers: {
-          Authorization: this.authHeaderValue,
+      .changes({
+        config: {
+          params: {
+            since: since,
+            include_docs: includeDocs,
+          },
         },
       })
       .pipe(

@@ -7,7 +7,7 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { DefaultReportStorage } from '../storage/report-storage.service';
+import { ReportingStorage } from '../storage/reporting-storage.service';
 import { map, Observable, switchMap } from 'rxjs';
 import { ReportCalculation } from '../../domain/report-calculation';
 import { Reference } from '../../domain/reference';
@@ -20,7 +20,7 @@ import {
 @Controller('/api/v1/reporting')
 export class ReportCalculationController {
   constructor(
-    private reportStorage: DefaultReportStorage,
+    private reportStorage: ReportingStorage,
     private createReportCalculation: CreateReportCalculationUseCase,
   ) {}
 

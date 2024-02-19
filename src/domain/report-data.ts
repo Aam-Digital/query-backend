@@ -25,7 +25,7 @@ export class ReportData {
     return this;
   }
 
-  asHash(): string {
+  getDataHash(): string {
     return crypto
       .createHash('sha256')
       .update(JSON.stringify(this.data))

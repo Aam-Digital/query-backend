@@ -1,2 +1,22 @@
-COUCH_SQS_CLIENT_CONFIG:
+# CouchDb clients config
+# BASE_URL: URL of the `CouchDB` or [replication backend](https://github.com/Aam-Digital/replication-backend)
+# TARGET_DATABASE: CouchDb database name
+COUCH_DB_CLIENT:
+  NOTIFICATION:
+    BASE_URL: http://localhost:5984
+    TARGET_DATABASE: notification-webhook
+  REPORT:
+    BASE_URL: http://localhost:5984
+    TARGET_DATABASE: app
+  REPORT_CALCULATION:
+    BASE_URL: http://localhost:5984
+    TARGET_DATABASE: report-calculation
+
+# CouchDb SQS client config
+# BASE_URL: URL of the SQS
+# SCHEMA_DESIGN_CONFIG: database ID of the document which holds the SQS schema (default `/app/_design/sqlite:config`)
+SQS_CLIENT:
   BASE_URL: http://localhost:4984
+  SCHEMA_DESIGN_CONFIG: /app/_design/sqlite:config
+
+REPORT_CHANGES_POLL_INTERVAL: 10000
