@@ -8,7 +8,7 @@ import { ReportData } from '../../domain/report-data';
 import { map, mergeAll, Observable, switchMap } from 'rxjs';
 import { ReportCalculation } from '../../domain/report-calculation';
 import { ReportingStorage } from '../storage/reporting-storage.service';
-import { CouchSqsClient } from '../../couchdb/couch-sqs.client';
+import { CouchSqsClient } from '../sqs/couch-sqs.client';
 import { v4 as uuidv4 } from 'uuid';
 import { Reference } from '../../domain/reference';
 

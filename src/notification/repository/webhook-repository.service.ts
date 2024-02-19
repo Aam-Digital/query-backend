@@ -4,6 +4,12 @@ import { Reference } from '../../domain/reference';
 import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 import { CouchDbRow, CouchDbRows, DocSuccess } from '../../couchdb/dtos';
 
+/**
+ * Representation of a WebHook stored in the database.
+ *
+ * @field owner: represents the creator of the WebhookEntity. Normally the User/Client who created the Webhook.
+ * Just owners can read their own entities or the entities of groups they are part of.
+ */
 export interface WebhookEntity {
   id: string;
   label: string;

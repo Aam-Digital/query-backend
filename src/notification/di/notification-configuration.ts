@@ -13,7 +13,7 @@ export const WebhookStorageFactory = (
   configService: ConfigService,
 ): WebhookStorage => {
   const couchDbClient = DefaultCouchDbClientFactory(
-    'NOTIFICATION_COUCH_DB_CLIENT_CONFIG_',
+    'COUCH_DB_CLIENT_NOTIFICATION_',
     configService,
   );
   const webhookRepository = new WebhookRepository(couchDbClient);

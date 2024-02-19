@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SqsReportCalculator } from './sqs-report-calculator.service';
 import { ReportingStorage } from '../storage/reporting-storage.service';
-import { CouchSqsClient } from '../../couchdb/couch-sqs.client';
+import { CouchSqsClient } from '../sqs/couch-sqs.client';
 
 describe('SqsReportCalculatorService', () => {
   let service: SqsReportCalculator;

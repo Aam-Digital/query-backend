@@ -7,7 +7,7 @@ import { ReportCalculationTask } from './tasks/report-calculation-task.service';
 import { ReportCalculationProcessor } from './tasks/report-calculation-processor.service';
 import { SqsReportCalculator } from './core/sqs-report-calculator.service';
 import { CreateReportCalculationUseCase } from './core/use-cases/create-report-calculation-use-case.service';
-import { CouchSqsClient } from '../couchdb/couch-sqs.client';
+import { CouchSqsClient } from './sqs/couch-sqs.client';
 import { ConfigService } from '@nestjs/config';
 import {
   CreateReportCalculationUseCaseFactory,
