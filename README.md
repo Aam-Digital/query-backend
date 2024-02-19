@@ -1,4 +1,6 @@
-# Query Back'end
+# Aam Digital - Query Backend
+An API / microservice to calculate "reports" (e.g. statistical, summarized indicators) based on entities in the primary database of an Aam Digital instance.
+
 
 This service allows to run SQL queries on the database.
 In particular, this service allows users with limited permissions to see reports of aggregated statistics across all data (e.g. a supervisor could analyse reports without having access to possibly confidential details of participants or notes).
