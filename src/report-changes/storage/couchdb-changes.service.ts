@@ -25,7 +25,12 @@ import {
 } from 'rxjs';
 import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 import { CouchDbChangesResponse } from '../../couchdb/dtos';
-import { DatabaseChangeResult, DatabaseChangesService, DocChangeDetails, EntityDoc, } from './database-changes.service';
+import {
+  DatabaseChangeResult,
+  DatabaseChangesService,
+  DocChangeDetails,
+  EntityDoc,
+} from './database-changes.service';
 
 /**
  * Access _changes from a CouchDB
@@ -39,11 +44,11 @@ export class CouchdbChangesService extends DatabaseChangesService {
   private databasePassword: string =
     this.configService.getOrThrow('DATABASE_PASSWORD');
 
-  private changesPollInterval: number = Number(
+  private changesPollInterval = Number(
     this.configService.getOrThrow('CHANGES_POLL_INTERVAL'),
   );
 
-  private authHeaderValue: string;
+  private readonly authHeaderValue: string;
 
   constructor(
     private couchdbClient: CouchDbClient,
@@ -60,7 +65,7 @@ export class CouchdbChangesService extends DatabaseChangesService {
   private changesSubscription: Subscription | undefined;
 
   subscribeToAllNewChanges(
-    includeDocs: boolean = false,
+    includeDocs = false,
   ): Observable<DatabaseChangeResult[]> {
     if (!this.changesSubscription) {
       let lastSeq = 'now';
@@ -117,15 +122,13 @@ export class CouchdbChangesService extends DatabaseChangesService {
           return of(undefined);
         }
 
-        return this.couchdbClient.getDatabaseDocument<EntityDoc>(
-          this.dbUrl,
-          this.databaseName,
-          docId,
-          {
+        return this.couchdbClient.getDatabaseDocument<EntityDoc>({
+          documentId: docId,
+          config: {
             params: { rev: previousRev },
             headers: { Authorization: this.authHeaderValue },
           },
-        );
+        });
       }),
     );
   }
@@ -137,15 +140,13 @@ export class CouchdbChangesService extends DatabaseChangesService {
    */
   private findLastRev(docId: string): Observable<string | undefined> {
     return this.couchdbClient
-      .getDatabaseDocument<EntityDoc | { _revs_info: CouchDbDocRevsInfo }>(
-        this.dbUrl,
-        this.databaseName,
-        docId,
-        {
+      .getDatabaseDocument<EntityDoc | { _revs_info: CouchDbDocRevsInfo }>({
+        documentId: docId,
+        config: {
           params: { revs_info: true },
           headers: { Authorization: this.authHeaderValue },
         },
-      )
+      })
       .pipe(
         map((doc) => {
           const revsInfo: CouchDbDocRevsInfo = doc._revs_info;
