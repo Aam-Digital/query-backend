@@ -101,6 +101,7 @@ export class WebhookController {
       name: webhook.label,
       target: webhook.target,
       authenticationType: webhook.authentication.type,
+      reportSubscriptions: webhook.reportSubscriptions,
     };
   }
 }

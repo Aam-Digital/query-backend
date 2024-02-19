@@ -1,3 +1,5 @@
+import { Reference } from '../../domain/reference';
+
 export interface WebhookDto {
   id: string;
   name: string;
@@ -6,6 +8,7 @@ export interface WebhookDto {
     url: string;
   };
   authenticationType: 'API_KEY';
+  reportSubscriptions: Reference[];
 }
 
 export interface CreateWebhookDto {
@@ -14,13 +17,10 @@ export interface CreateWebhookDto {
     method: 'GET' | 'POST';
     url: string;
   };
-  authentication: {
-    type: 'API_KEY';
-    apiKey: string;
-  };
+  authentication: ApiKeyAuthConfig;
 }
 
 export interface ApiKeyAuthConfig {
-  key: string;
-  headerName: string;
+  type: 'API_KEY';
+  apiKey: string;
 }
