@@ -7,12 +7,14 @@ import { WebhookStorageFactory } from './di/notification-configuration';
 import { CryptoModule } from '../crypto/crypto/crypto.module';
 import { CryptoService } from '../crypto/core/crypto.service';
 import { HttpModule } from '@nestjs/axios';
+import { UrlParser } from './core/url-parser.service';
 
 @Module({
   controllers: [WebhookController],
   imports: [CryptoModule, HttpModule],
   providers: [
     NotificationService,
+    UrlParser,
     {
       provide: WebhookStorage,
       useFactory: WebhookStorageFactory,
