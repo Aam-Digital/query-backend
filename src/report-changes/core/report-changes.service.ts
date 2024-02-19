@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EntityDoc, ReportChangeDetector } from './report-change-detector';
+import { ReportChangeDetector } from './report-change-detector';
 import { NotificationService } from '../../notification/core/notification.service';
 import { Reference } from '../../domain/reference';
 import { ReportDataChangeEvent } from '../../domain/report-data-change-event';
@@ -7,12 +7,15 @@ import { ReportCalculationOutcomeSuccess } from '../../domain/report-calculation
 import { Report } from '../../domain/report';
 import { CouchdbChangesService } from '../storage/couchdb-changes.service';
 import { DefaultReportStorage } from '../../report/storage/report-storage.service';
-import { filter, map, mergeAll, Observable, switchMap, tap, zip } from 'rxjs';
+import { filter, map, Observable, switchMap, tap, zip } from 'rxjs';
 import {
   CreateReportCalculationFailed,
   CreateReportCalculationUseCase,
 } from '../../report/core/use-cases/create-report-calculation-use-case.service';
-import { DatabaseChangeResult } from '../storage/database-changes.service';
+import {
+  DatabaseChangeResult,
+  DocChangeDetails,
+} from '../storage/database-changes.service';
 
 @Injectable()
 export class ReportChangesService {
@@ -76,13 +79,11 @@ export class ReportChangesService {
 
   monitorCouchDbChanges() {
     this.couchdbChangesRepository
-      .subscribeToAllNewChanges()
+      .subscribeToAllNewChangesWithDocs()
       .pipe(
-        mergeAll(),
-        tap((change: DatabaseChangeResult) =>
-          this.checkReportConfigUpdate(change),
+        tap((change: DocChangeDetails) =>
+          this.checkReportConfigUpdate(change.change),
         ),
-        map((c: DatabaseChangeResult) => this.getChangeDetails(c)),
         switchMap((change: DocChangeDetails) =>
           this.changeIsAffectingReport(change),
         ),
@@ -95,23 +96,6 @@ export class ReportChangesService {
       });
   }
 
-  /**
-   * Load current and previous doc for advanced change detection across all reports.
-   * @param change
-   * @private
-   */
-  private getChangeDetails(change: DatabaseChangeResult): DocChangeDetails {
-    // TODO: storage to get any doc from DB (for a _rev also!)
-    //       until then, only the .change with the id can be used in ReportChangeDetector
-    // can also use ?include_docs=true in the changes request to get the latest doc
-
-    return {
-      change: change,
-      previous: { _id: '' }, // cache this here to avoid requests?
-      new: { _id: '' },
-    };
-  }
-
   private changeIsAffectingReport(
     docChange: DocChangeDetails,
   ): Observable<ReportDataChangeEvent[]> {
@@ -122,48 +106,64 @@ export class ReportChangesService {
         continue;
       }
 
-      const reportChangeEventObservable = this.createReportCalculation
-        .startReportCalculation(changeDetector.report)
-        .pipe(
-          switchMap((outcome) => {
-            if (outcome instanceof CreateReportCalculationFailed) {
-              // TODO: what do we do here in case of failure?
-              throw new Error('Report calculation failed');
-            }
-
-            return this.createReportCalculation.getCompletedReportCalculation(
-              new Reference(outcome.result.id),
-            );
-          }),
-          filter(
-            (calcUpdate) =>
-              (calcUpdate.outcome as ReportCalculationOutcomeSuccess)
-                ?.result_hash !== changeDetector.lastCalculationHash,
-          ),
-          tap(
-            (calcUpdate) =>
-              (changeDetector.lastCalculationHash = (
-                calcUpdate.outcome as ReportCalculationOutcomeSuccess
-              )?.result_hash),
-          ),
-          map(
-            (result) =>
-              ({
-                report: result.report,
-                calculation: result,
-              } as ReportDataChangeEvent),
-          ),
-        );
+      const reportChangeEventObservable = this.calculateNewReportData(
+        changeDetector,
+        docChange,
+      );
 
       affectedReports.push(reportChangeEventObservable);
     }
 
     return zip(affectedReports);
   }
-}
 
-export interface DocChangeDetails {
-  change: DatabaseChangeResult;
-  previous: EntityDoc;
-  new: EntityDoc;
+  private calculateNewReportData(
+    changeDetector: ReportChangeDetector,
+    docChange: DocChangeDetails,
+  ) {
+    return this.createReportCalculation
+      .startReportCalculation(changeDetector.report)
+      .pipe(
+        switchMap((outcome) => {
+          if (outcome instanceof CreateReportCalculationFailed) {
+            const err = new Error('Report calculation failed');
+            console.error(err);
+            // TODO: what do we do here in case of failure?
+            throw err;
+          }
+
+          return this.createReportCalculation.getCompletedReportCalculation(
+            new Reference(outcome.result.id),
+          );
+        }),
+        filter((calcUpdate) => {
+          if (
+            (calcUpdate.outcome as ReportCalculationOutcomeSuccess)
+              ?.result_hash !== changeDetector.lastCalculationHash
+          ) {
+            return true;
+          } else {
+            console.log(
+              'Report calculation did not change from doc',
+              changeDetector.report,
+              docChange,
+            );
+            return false;
+          }
+        }),
+        tap(
+          (calcUpdate) =>
+            (changeDetector.lastCalculationHash = (
+              calcUpdate.outcome as ReportCalculationOutcomeSuccess
+            )?.result_hash),
+        ),
+        map(
+          (result) =>
+            ({
+              report: result.report,
+              calculation: result,
+            } as ReportDataChangeEvent),
+        ),
+      );
+  }
 }
