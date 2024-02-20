@@ -41,7 +41,7 @@ export class ReportCalculationRepository {
   fetchCalculations(): Observable<FetchReportCalculationsResponse> {
     return this.couchDbClient.getDatabaseDocument<FetchReportCalculationsResponse>(
       {
-        documentId: `_all_docs`,
+        documentId: '_all_docs',
         config: {
           params: {
             include_docs: true,

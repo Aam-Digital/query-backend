@@ -49,7 +49,7 @@ export class ReportRepository {
 
     return this.couchDbClient
       .getDatabaseDocument<FetchReportsResponse>({
-        documentId: `_all_docs`,
+        documentId: '_all_docs',
         config: config,
       })
       .pipe(
