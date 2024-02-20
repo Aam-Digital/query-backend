@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { IReportStorage } from '../core/i-report-storage';
+import { IReportStorage } from '../core/report-storage.interface';
 import { ReportingStorage } from './reporting-storage.service';
 import { ReportRepository } from '../repository/report-repository.service';
 import { ReportCalculationRepository } from '../repository/report-calculation-repository.service';

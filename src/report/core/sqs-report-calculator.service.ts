@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { ReportCalculator } from './report-calculator';
+import { IReportCalculator } from './report-calculator.interface';
 import { ReportData } from '../../domain/report-data';
 import { map, mergeAll, Observable, switchMap } from 'rxjs';
 import { ReportCalculation } from '../../domain/report-calculation';
@@ -12,7 +12,7 @@ import { CouchSqsClient } from '../sqs/couch-sqs.client';
 import { v4 as uuidv4 } from 'uuid';
 import { Reference } from '../../domain/reference';
 
-export class SqsReportCalculator implements ReportCalculator {
+export class SqsReportCalculator implements IReportCalculator {
   constructor(
     private sqsClient: CouchSqsClient,
     private reportStorage: ReportingStorage,

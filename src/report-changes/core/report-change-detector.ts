@@ -1,6 +1,7 @@
 import { Report } from '../../domain/report';
 
 import { DocChangeDetails } from '../storage/database-changes.service';
+import { IReportSchemaGenerator } from '../../report/core/report-schema-generator.interface';
 
 /**
  * Simple class encapsulating the logic to determine if a specific report is affected by a change in the database.
@@ -11,7 +12,10 @@ export class ReportChangeDetector {
 
   private sqlTableNames: string[] = [];
 
-  constructor(report: Report) {
+  constructor(
+    report: Report,
+    private reportsSchemaGenerator: IReportSchemaGenerator,
+  ) {
     this.report = report;
     this.updateReportConfig(report);
   }
@@ -19,22 +23,13 @@ export class ReportChangeDetector {
   updateReportConfig(report: Report) {
     this.report = report;
 
-    this.sqlTableNames = this.getSqlTableNames(report);
-  }
-
-  private getSqlTableNames(report: Report) {
-    const sqlFromTableRegex = /FROM\s+(\w+)/g;
-
-    return report.queries
-      .map((sql: string) =>
-        [...sql.matchAll(sqlFromTableRegex)].map(
-          (match) => match[1] /* matching regex group (table name) */,
-        ),
-      )
-      .flat();
+    this.sqlTableNames =
+      this.reportsSchemaGenerator.getAffectedEntities(report);
   }
 
   affectsReport(doc: DocChangeDetails): boolean {
+  // TODO: consider removing the ReportChangeDetector class completely:
+  //    do all query parsing in ReportSchemaGenerator and implement the conditions directly in ReportChangesService?
     const entityType = doc.change.id.split(':')[0];
     if (!this.sqlTableNames.includes(entityType)) {
       return false;
