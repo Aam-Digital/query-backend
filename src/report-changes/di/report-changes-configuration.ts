@@ -5,6 +5,7 @@ import { ReportChangesService } from '../core/report-changes.service';
 import { NotificationService } from '../../notification/core/notification.service';
 import { CreateReportCalculationUseCase } from '../../report/core/use-cases/create-report-calculation-use-case.service';
 import { ReportingStorage } from '../../report/storage/reporting-storage.service';
+import { ReportSchemaGenerator } from '../../report/core/report-schema-generator';
 
 export const CouchdbChangesServiceFactory = (
   configService: ConfigService,
@@ -28,5 +29,6 @@ export const ReportChangesServiceFactory = (
     reportStorage,
     couchdbChangesService,
     createReportCalculationUseCase,
+    new ReportSchemaGenerator(),
   );
 };

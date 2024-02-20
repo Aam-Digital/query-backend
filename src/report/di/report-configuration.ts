@@ -8,6 +8,7 @@ import { SqsReportCalculator } from '../core/sqs-report-calculator.service';
 import { CreateReportCalculationUseCase } from '../core/use-cases/create-report-calculation-use-case.service';
 import axios from 'axios';
 import { HttpService } from '@nestjs/axios';
+import { ReportSchemaGenerator } from '../core/report-schema-generator';
 
 export const ReportCouchSqsClientFactory = (
   configService: ConfigService,
@@ -50,6 +51,7 @@ export const ReportingStorageFactory = (
         configService,
       ),
     ),
+    new ReportSchemaGenerator(),
   );
 
 export const SqsReportCalculatorFactory = (

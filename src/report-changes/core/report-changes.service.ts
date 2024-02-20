@@ -15,6 +15,7 @@ import {
   DatabaseChangeResult,
   DocChangeDetails,
 } from '../storage/database-changes.service';
+import { IReportSchemaGenerator } from '../../report/core/report-schema-generator.interface';
 
 export class ReportChangesService {
   private reportMonitors = new Map<string, ReportChangeDetector>();
@@ -24,6 +25,7 @@ export class ReportChangesService {
     private reportStorage: ReportingStorage,
     private couchdbChangesRepository: CouchDbChangesService,
     private createReportCalculation: CreateReportCalculationUseCase,
+    private reportSchemaGenerator: IReportSchemaGenerator,
   ) {
     this.notificationService
       .activeReports()
@@ -53,7 +55,10 @@ export class ReportChangesService {
           return;
         }
 
-        this.reportMonitors.set(report.id, new ReportChangeDetector(report));
+        this.reportMonitors.set(
+          report.id,
+          new ReportChangeDetector(report, this.reportSchemaGenerator),
+        );
       });
   }
 

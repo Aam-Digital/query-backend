@@ -1,4 +1,10 @@
-import { Controller, Get, Headers, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Headers,
+  NotFoundException,
+  Param,
+} from '@nestjs/common';
 import {
   defaultIfEmpty,
   map,
@@ -32,9 +38,15 @@ export class ReportController {
     @Headers('Authorization') token: string,
     @Param('reportId') reportId: string,
   ): Observable<ReportDto> {
-    return this.reportStorage
-      .fetchReport(new Reference(reportId), token)
-      .pipe(switchMap((report) => this.getReportDto(report as any))); // TODO: fix for undefined report
+    return this.reportStorage.fetchReport(new Reference(reportId), token).pipe(
+      switchMap((report) => {
+        if (!report) {
+          throw new NotFoundException();
+        }
+
+        return this.getReportDto(report as any);
+      }),
+    );
   }
 
   private getReportDto(report: Report): Observable<ReportDto> {

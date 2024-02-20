@@ -1,6 +1,6 @@
 import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
-import { IReportStorage } from '../core/i-report-storage';
+import { IReportStorage } from '../core/report-storage.interface';
 import { ReportRepository } from '../repository/report-repository.service';
 import { map, Observable, Subject, switchMap, tap } from 'rxjs';
 import { NotFoundException } from '@nestjs/common';
@@ -13,11 +13,13 @@ import {
   ReportCalculationRepository,
 } from '../repository/report-calculation-repository.service';
 import { ReportData } from '../../domain/report-data';
+import { IReportSchemaGenerator } from '../core/report-schema-generator.interface';
 
 export class ReportingStorage implements IReportStorage {
   constructor(
     private reportRepository: ReportRepository,
     private reportCalculationRepository: ReportCalculationRepository,
+    private reportSchemaGenerator: IReportSchemaGenerator,
   ) {}
 
   reportCalculationUpdated = new Subject<ReportCalculation>();
@@ -38,7 +40,9 @@ export class ReportingStorage implements IReportStorage {
               reportEntity.doc.aggregationDefinitions,
               reportEntity.doc.mode,
             ).setSchema({
-              fields: reportEntity.doc.aggregationDefinitions, // todo generate actual fields here
+              fields: this.reportSchemaGenerator.getTableNamesByQueries(
+                reportEntity.doc.aggregationDefinitions,
+              ),
             }),
           );
       }),
@@ -57,7 +61,9 @@ export class ReportingStorage implements IReportStorage {
           report.aggregationDefinitions,
           report.mode,
         ).setSchema({
-          fields: report.aggregationDefinitions, // todo generate actual fields here
+          fields: this.reportSchemaGenerator.getTableNamesByQueries(
+            report.aggregationDefinitions,
+          ),
         });
       }),
     );

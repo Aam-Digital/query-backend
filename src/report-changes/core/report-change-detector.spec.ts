@@ -5,6 +5,7 @@ import {
   DocChangeDetails,
   EntityDoc,
 } from '../storage/database-changes.service';
+import { ReportSchemaGenerator } from '../../report/core/report-schema-generator';
 
 describe('ReportChangeDetector', () => {
   function testReportChangeDetection(
@@ -16,7 +17,10 @@ describe('ReportChangeDetector', () => {
       mode: 'sql',
       queries: [sqlStatement],
     };
-    const service = new ReportChangeDetector(report as Report);
+    const service = new ReportChangeDetector(
+      report as Report,
+      new ReportSchemaGenerator(),
+    );
 
     for (const [newDoc, expectedResult] of testCases) {
       const mockedDocChange: DocChangeDetails = {
