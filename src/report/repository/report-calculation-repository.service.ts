@@ -120,19 +120,6 @@ export class ReportCalculationRepository {
         return calculation.id;
       }),
       switchMap((calculationId) => {
-        this.couchDbClient.getDatabaseDocument<FetchReportCalculationsResponse>(
-          {
-            documentId: `_all_docs`,
-            config: {
-              params: {
-                include_docs: true,
-                start_key: '"' + calculationId + '"',
-                end_key: '"ReportCalculation' + '\ufff0"', // ufff0 -> high value unicode character
-              },
-            },
-          },
-        );
-
         return this.couchDbClient
           .find<FindResponse<ReportData>>({
             query: {

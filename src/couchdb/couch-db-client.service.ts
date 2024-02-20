@@ -1,4 +1,10 @@
-import { Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { AxiosHeaders } from 'axios';
@@ -60,7 +66,7 @@ export class CouchDbClient {
 
   find<T>(request: { query: object; config: any }): Observable<T> {
     return this.httpService
-      .post<T>(`_find`, request.query, request.config)
+      .post<T>('_find', request.query, request.config)
       .pipe(
         map((response) => {
           return response.data;
@@ -125,6 +131,17 @@ export class CouchDbClient {
   }
 
   private handleError(err: any) {
-    this.logger.error(err);
+    if (err.response?.status === 401) {
+      throw new UnauthorizedException();
+    }
+    if (err.response?.status === 403) {
+      throw new ForbiddenException();
+    }
+    if (err.response?.status === 404) {
+      throw new NotFoundException();
+    }
+
+    console.error(err);
+    throw new InternalServerErrorException();
   }
 }
