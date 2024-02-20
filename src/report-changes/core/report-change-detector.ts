@@ -28,6 +28,8 @@ export class ReportChangeDetector {
   }
 
   affectsReport(doc: DocChangeDetails): boolean {
+  // TODO: consider removing the ReportChangeDetector class completely:
+  //    do all query parsing in ReportSchemaGenerator and implement the conditions directly in ReportChangesService?
     const entityType = doc.change.id.split(':')[0];
     if (!this.sqlTableNames.includes(entityType)) {
       return false;
