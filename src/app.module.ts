@@ -47,7 +47,7 @@ const lowSeverityLevels: SeverityLevel[] = ['log', 'info'];
           dsn: configService.getOrThrow('SENTRY_DSN'),
           debug: true,
           environment: 'prod',
-          release: 'backend@' + process.env.npm_package_version,
+          release: 'query-backend@' + process.env.npm_package_version, // TODO: version turns out as undefined in Sentry
           whitelistUrls: [/https?:\/\/(.*)\.?aam-digital\.com/],
           initialScope: {
             tags: {
