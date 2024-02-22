@@ -88,6 +88,8 @@ export class ReportRepository {
   }
 
   private handleError(err: any) {
+    console.error(err);
+
     if (err.response.status === 401) {
       throw new UnauthorizedException();
     }

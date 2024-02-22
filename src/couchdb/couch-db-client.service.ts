@@ -131,6 +131,8 @@ export class CouchDbClient {
   }
 
   private handleError(err: any) {
+    console.error(err);
+
     if (err.response?.status === 401) {
       throw new UnauthorizedException();
     }
@@ -140,8 +142,6 @@ export class CouchDbClient {
     if (err.response?.status === 404) {
       throw new NotFoundException();
     }
-
-    console.error(err);
     throw new InternalServerErrorException();
   }
 }
