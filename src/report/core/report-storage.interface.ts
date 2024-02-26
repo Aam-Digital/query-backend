@@ -4,7 +4,7 @@ import { Observable, Subject } from 'rxjs';
 import { ReportCalculation } from '../../domain/report-calculation';
 import { ReportData } from '../../domain/report-data';
 
-export interface IReportStorage {
+export interface IReportingStorage {
   fetchAllReports(authToken: string, mode: string): Observable<Report[]>;
 
   fetchReport(

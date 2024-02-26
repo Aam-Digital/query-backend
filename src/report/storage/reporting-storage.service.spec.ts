@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { IReportStorage } from '../core/report-storage.interface';
+import { IReportingStorage } from '../core/report-storage.interface';
 import { ReportingStorage } from './reporting-storage.service';
 import { ReportRepository } from '../repository/report-repository.service';
 import { ReportCalculationRepository } from '../repository/report-calculation-repository.service';
@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 
 describe('DefaultReportStorage', () => {
-  let service: IReportStorage;
+  let service: IReportingStorage;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -29,7 +29,7 @@ describe('DefaultReportStorage', () => {
       ],
     }).compile();
 
-    service = module.get<IReportStorage>(ReportingStorage);
+    service = module.get<IReportingStorage>(ReportingStorage);
   });
 
   it('should be defined', () => {

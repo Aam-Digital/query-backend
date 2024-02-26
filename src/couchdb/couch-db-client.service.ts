@@ -1,10 +1,4 @@
-import {
-  ForbiddenException,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { AxiosHeaders } from 'axios';
@@ -131,17 +125,6 @@ export class CouchDbClient {
   }
 
   private handleError(err: any) {
-    console.error(err);
-
-    if (err.response?.status === 401) {
-      throw new UnauthorizedException();
-    }
-    if (err.response?.status === 403) {
-      throw new ForbiddenException();
-    }
-    if (err.response?.status === 404) {
-      throw new NotFoundException();
-    }
-    throw new InternalServerErrorException();
+    this.logger.error(err);
   }
 }

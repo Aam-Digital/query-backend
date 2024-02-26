@@ -1,20 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import {
   ReportCalculation,
   ReportCalculationStatus,
 } from '../../domain/report-calculation';
-import { ReportingStorage } from '../storage/reporting-storage.service';
-import { SqsReportCalculator } from '../core/sqs-report-calculator.service';
 import { ReportData } from '../../domain/report-data';
+import { IReportCalculator } from '../core/report-calculator.interface';
+import { IReportingStorage } from '../core/report-storage.interface';
 
-@Injectable()
 export class ReportCalculationProcessor {
   private readonly logger = new Logger(ReportCalculationProcessor.name);
 
   constructor(
-    private reportStorage: ReportingStorage,
-    private reportCalculator: SqsReportCalculator,
+    private reportStorage: IReportingStorage,
+    private reportCalculator: IReportCalculator,
   ) {}
 
   processNextPendingCalculation(): Observable<void> {

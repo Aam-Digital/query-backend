@@ -7,15 +7,15 @@ import { IReportCalculator } from './report-calculator.interface';
 import { ReportData } from '../../domain/report-data';
 import { map, mergeAll, Observable, switchMap } from 'rxjs';
 import { ReportCalculation } from '../../domain/report-calculation';
-import { ReportingStorage } from '../storage/reporting-storage.service';
-import { CouchSqsClient } from '../sqs/couch-sqs.client';
 import { v4 as uuidv4 } from 'uuid';
 import { Reference } from '../../domain/reference';
+import { IReportingStorage } from './report-storage.interface';
+import { IQueryService } from '../../query/core/query-service.interface';
 
-export class SqsReportCalculator implements IReportCalculator {
+export class ReportCalculator implements IReportCalculator {
   constructor(
-    private sqsClient: CouchSqsClient,
-    private reportStorage: ReportingStorage,
+    private queryService: IQueryService,
+    private reportStorage: IReportingStorage,
   ) {}
 
   calculate(reportCalculation: ReportCalculation): Observable<ReportData> {
@@ -34,18 +34,17 @@ export class SqsReportCalculator implements IReportCalculator {
         }
 
         return report.queries.flatMap((query) => {
-          return this.sqsClient
+          return this.queryService
             .executeQuery({
               query: query,
-              args: [], // TODO pass args here
             })
             .pipe(
-              map((rawResponse) => {
+              map((queryResult) => {
                 return new ReportData(
                   `ReportData:${uuidv4()}`,
                   reportCalculation.report,
                   new Reference(reportCalculation.id),
-                ).setData(rawResponse);
+                ).setData(queryResult.result);
               }),
             );
         });
