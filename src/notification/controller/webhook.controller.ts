@@ -24,6 +24,7 @@ export class WebhookController {
 
   @Get()
   fetchWebhooksOfUser(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Headers('Authorization') token: string,
   ): Observable<WebhookDto[]> {
     return this.webhookStorage.fetchAllWebhooks('user-token').pipe(

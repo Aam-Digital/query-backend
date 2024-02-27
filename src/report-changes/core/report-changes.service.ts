@@ -31,6 +31,7 @@ export class ReportChangesService {
       .activeReports()
       .subscribe((reports: Reference[]) => {
         reports.forEach((r) => this.registerReportMonitoring(r));
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for (const [id, monitor] of this.reportMonitors.entries()) {
           if (!reports.some((r) => r.id === id)) {
             this.reportMonitors.delete(id);
@@ -104,6 +105,7 @@ export class ReportChangesService {
   ): Observable<ReportDataChangeEvent[]> {
     const affectedReports: Observable<ReportDataChangeEvent>[] = [];
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [reportId, changeDetector] of this.reportMonitors.entries()) {
       if (!changeDetector.affectsReport(docChange)) {
         continue;
@@ -165,7 +167,7 @@ export class ReportChangesService {
             ({
               report: result.report,
               calculation: result,
-            } as ReportDataChangeEvent),
+            }) as ReportDataChangeEvent,
         ),
       );
   }

@@ -9,6 +9,7 @@ import { CreateReportCalculationUseCase } from '../../report/core/use-cases/crea
 import { DatabaseChangeResult } from '../storage/database-changes.service';
 
 describe('ReportChangesService', () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let service: ReportChangesService;
   let mockNotificationService: Partial<NotificationService>;
 

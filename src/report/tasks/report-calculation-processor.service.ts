@@ -59,7 +59,7 @@ export class ReportCalculationProcessor {
             ),
           );
       }),
-      catchError((err, caught) => {
+      catchError((err) => {
         console.log(err);
         return of();
       }),
