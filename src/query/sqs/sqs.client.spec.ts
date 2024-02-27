@@ -41,9 +41,9 @@ describe('SqsClient', () => {
       providers: [
         {
           provide: SqsClient,
-          useFactory: (http, sqsSchemaService) =>
-            new SqsClient(http, sqsSchemaService),
-          inject: [HttpService, SqsSchemaService],
+          useFactory: (http, sqsSchemaService, logger) =>
+            new SqsClient(http, sqsSchemaService, logger),
+          inject: [HttpService, SqsSchemaService, Logger],
         },
         { provide: HttpService, useValue: mockHttp },
         { provide: SqsSchemaService, useValue: mockSqsSchemaService },
@@ -59,13 +59,7 @@ describe('SqsClient', () => {
   });
 
   it('executeQuery() should execute query and return QueryResult', (done) => {
-    jest
-      .spyOn(mockSqsSchemaService, 'getSchemaPath')
-      .mockReturnValue('/app/config_path');
-
-    jest
-      .spyOn(mockSqsSchemaService, 'updateSchema')
-      .mockReturnValue(of(undefined));
+    configureSuccessSqsSchemaResponse();
 
     jest.spyOn(mockHttp, 'post').mockReturnValue(
       of({
@@ -87,8 +81,8 @@ describe('SqsClient', () => {
             },
           });
 
-          expect(mockLogger.error).not.toBeCalled();
-          expect(mockLogger.debug).not.toBeCalled();
+          expect(mockLogger.error).not.toHaveBeenCalled();
+          expect(mockLogger.debug).not.toHaveBeenCalled();
 
           done();
         },
@@ -99,13 +93,7 @@ describe('SqsClient', () => {
   });
 
   it('executeQuery() should handle error from httpService', (done) => {
-    jest
-      .spyOn(mockSqsSchemaService, 'getSchemaPath')
-      .mockReturnValue('/app/config_path');
-
-    jest
-      .spyOn(mockSqsSchemaService, 'updateSchema')
-      .mockReturnValue(of(undefined));
+    configureSuccessSqsSchemaResponse();
 
     jest
       .spyOn(mockHttp, 'post')
@@ -116,25 +104,19 @@ describe('SqsClient', () => {
         query: 'SELECT foo FROM bar',
       })
       .subscribe({
-        next: (value) => {
+        next: () => {
           done('should throw error ');
         },
         error: (err) => {
           expect(err.message).toBe('foo error');
-          expect(mockLogger.error).not.toBeCalled();
+          expect(mockLogger.error).toHaveBeenCalled();
           done();
         },
       });
   });
 
   it('executeQueries() should execute all queries and return QueryResult[]', (done) => {
-    jest
-      .spyOn(mockSqsSchemaService, 'getSchemaPath')
-      .mockReturnValue('/app/config_path');
-
-    jest
-      .spyOn(mockSqsSchemaService, 'updateSchema')
-      .mockReturnValue(of(undefined));
+    configureSuccessSqsSchemaResponse();
 
     jest.spyOn(mockHttp, 'post').mockReturnValueOnce(
       of({
@@ -176,8 +158,8 @@ describe('SqsClient', () => {
             },
           ]);
 
-          expect(mockLogger.error).not.toBeCalled();
-          expect(mockLogger.debug).not.toBeCalled();
+          expect(mockLogger.error).not.toHaveBeenCalled();
+          expect(mockLogger.debug).not.toHaveBeenCalled();
 
           done();
         },
@@ -186,4 +168,14 @@ describe('SqsClient', () => {
         },
       });
   });
+
+  function configureSuccessSqsSchemaResponse() {
+    jest
+      .spyOn(mockSqsSchemaService, 'getSchemaPath')
+      .mockReturnValue('/app/config_path');
+
+    jest
+      .spyOn(mockSqsSchemaService, 'updateSchema')
+      .mockReturnValue(of(undefined));
+  }
 });

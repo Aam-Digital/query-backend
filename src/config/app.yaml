@@ -22,3 +22,12 @@ QUERY:
     TARGET_DATABASE: app
 
 REPORT_CHANGES_POLL_INTERVAL: 10000
+
+# Logger Configuration
+# values can be overwritten in .env file
+
+SENTRY:
+  ENABLED: false
+  INSTANCE_NAME: local-development # can be personalised in .env -> local-development-<your-name>
+  ENVIRONMENT: local # local | development | production
+  DNS:

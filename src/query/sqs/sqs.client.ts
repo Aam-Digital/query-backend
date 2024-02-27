@@ -12,11 +12,10 @@ export class CouchSqsClientConfig {
 }
 
 export class SqsClient {
-  private readonly logger: Logger = new Logger(SqsClient.name);
-
   constructor(
     private httpService: HttpService,
     private schemaService: SqsSchemaService,
+    private logger: Logger,
   ) {}
 
   executeQuery(query: QueryRequest): Observable<QueryResult> {
