@@ -124,7 +124,7 @@ export class CouchDbClient {
           return headers['etag'].replaceAll('"', '');
         }
       }),
-      catchError((err) => {
+      catchError(() => {
         return of(undefined);
       }),
     );
