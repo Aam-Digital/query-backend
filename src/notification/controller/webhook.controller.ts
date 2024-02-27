@@ -23,10 +23,7 @@ export class WebhookController {
   ) {}
 
   @Get()
-  fetchWebhooksOfUser(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    @Headers('Authorization') token: string,
-  ): Observable<WebhookDto[]> {
+  fetchWebhooksOfUser(): Observable<WebhookDto[]> {
     return this.webhookStorage.fetchAllWebhooks('user-token').pipe(
       map((webhooks) => webhooks.map((webhook) => this.mapToDto(webhook))),
       zipAll(),
@@ -35,10 +32,7 @@ export class WebhookController {
   }
 
   @Get('/:webhookId')
-  fetchWebhook(
-    @Headers('Authorization') token: string,
-    @Param('webhookId') webhookId: string,
-  ): Observable<WebhookDto> {
+  fetchWebhook(@Param('webhookId') webhookId: string): Observable<WebhookDto> {
     return this.webhookStorage.fetchWebhook(new Reference(webhookId)).pipe(
       // TODO: check auth?
       map((webhook) => {

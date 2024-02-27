@@ -4,6 +4,7 @@ import { SqsSchemaService } from './sqs-schema-generator.service';
 describe('SchemaGeneratorService', () => {
   let service: SqsSchemaService;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const entityConfig = {
     'entity:Child': {
       label: 'Child',
