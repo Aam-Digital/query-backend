@@ -19,7 +19,7 @@ export class ReportCalculationTask {
           throw err;
         }),
       )
-      .subscribe((_) => {
+      .subscribe(() => {
         this.logger.log('done');
       });
   }

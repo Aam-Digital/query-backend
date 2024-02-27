@@ -72,6 +72,7 @@ export class WebhookStorage {
    * Get all registered webhooks subscribe by the user authenticated with the given token
    * @param token
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   fetchAllWebhooks(token?: string): Observable<Webhook[]> {
     return this.webhookRepository
       .fetchAllWebhooks()

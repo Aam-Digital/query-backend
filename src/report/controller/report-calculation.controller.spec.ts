@@ -26,7 +26,7 @@ describe('ReportCalculationController', () => {
         {
           provide: ConfigService,
           useValue: {
-            getOrThrow: jest.fn((key) => {
+            getOrThrow: jest.fn(() => {
               return 'foo';
             }),
           },
