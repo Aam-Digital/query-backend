@@ -1,69 +1,124 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { ReportChangesService } from './report-changes.service';
-import { BehaviorSubject, map, of, Subject } from 'rxjs';
+import { BehaviorSubject, of, Subject } from 'rxjs';
 import { NotificationService } from '../../notification/core/notification.service';
-import { Reference } from '../../domain/reference';
 import { ReportingStorage } from '../../report/storage/reporting-storage.service';
 import { CouchDbChangesService } from '../storage/couch-db-changes.service';
-import { CreateReportCalculationUseCase } from '../../report/core/use-cases/create-report-calculation-use-case.service';
-import { DatabaseChangeResult } from '../storage/database-changes.service';
+import {
+  CreateReportCalculationSuccess,
+  CreateReportCalculationUseCase,
+} from '../../report/core/use-cases/create-report-calculation-use-case.service';
+import {
+  DatabaseChangeResult,
+  DocChangeDetails,
+} from '../storage/database-changes.service';
+import { ReportSchemaGenerator } from '../../report/core/report-schema-generator';
+import { ReportChangeDetector } from './report-change-detector';
+import {
+  ReportCalculation,
+  ReportCalculationStatus,
+} from '../../domain/report-calculation';
 
 describe('ReportChangesService', () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let service: ReportChangesService;
   let mockNotificationService: Partial<NotificationService>;
+  let mockCreateReportCalculationUseCase: Partial<CreateReportCalculationUseCase>;
+  let mockReportStorage: Partial<ReportingStorage>;
 
   let activeReports: BehaviorSubject<string[]>;
-  let mockedChangesStream: Subject<DatabaseChangeResult[]>;
+  let mockedChangesStream: Subject<DocChangeDetails>;
 
   beforeEach(async () => {
-    mockedChangesStream = new Subject<DatabaseChangeResult[]>();
-    activeReports = new BehaviorSubject<string[]>([]);
+    mockedChangesStream = new Subject<DocChangeDetails>();
     mockNotificationService = {
-      activeReports: () =>
-        activeReports
-          .asObservable()
-          .pipe(map((reportIds) => reportIds.map((id) => new Reference(id)))),
+      activeReports: () => of([]),
       triggerNotification: jest.fn(),
     };
+    mockCreateReportCalculationUseCase = { startReportCalculation: jest.fn() };
+    mockReportStorage = {
+      fetchReport: jest.fn(),
+    };
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ReportChangesService,
-        { provide: NotificationService, useValue: mockNotificationService },
-        {
-          provide: ReportingStorage,
-          useValue: { fetchReport: () => of() },
-        },
-        {
-          provide: CouchDbChangesService,
-          useValue: { subscribeToAllNewChanges: () => mockedChangesStream },
-        },
-        {
-          provide: CreateReportCalculationUseCase,
-          useValue: null,
-        },
-      ],
-    }).compile();
+    service = new ReportChangesService(
+      mockNotificationService as NotificationService,
+      mockReportStorage as ReportingStorage,
+      {
+        subscribeToAllNewChangesWithDocs: () => mockedChangesStream,
+      } as Partial<CouchDbChangesService> as CouchDbChangesService,
+      mockCreateReportCalculationUseCase as CreateReportCalculationUseCase,
+      new ReportSchemaGenerator(),
+    );
 
-    service = module.get<ReportChangesService>(ReportChangesService);
+    jest.useFakeTimers();
   });
 
-  xit('should trigger core after adding active report through NotificationService', (done) => {
-    const testReportId = 'report1';
-    activeReports.next([testReportId]);
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
 
-    // TODO mock a couchDbService.changes event
-
-    (
-      mockNotificationService.triggerNotification as jest.Mock
-    ).mockImplementation((reportId: string) => {
-      expect(reportId).toBe(testReportId);
-      done();
+  function simulateDocChange(
+    change: Partial<DatabaseChangeResult> = { id: 'Person:1', doc: {} },
+  ) {
+    mockedChangesStream.next({
+      change: change as DatabaseChangeResult,
+      previousDoc: undefined,
+      newDoc: change.doc,
     });
+  }
+
+  it('should not check changes if NotificationService has active reports', () => {
+    mockNotificationService.activeReports = jest.fn().mockReturnValue(of([]));
+
+    simulateDocChange();
+    jest.runOnlyPendingTimers();
+
+    expect(
+      mockCreateReportCalculationUseCase.startReportCalculation,
+    ).not.toHaveBeenCalled();
   });
 
-  xit('should trigger core after adding active report through NotificationService', async () => {
+  it('should check changes if NotificationService has active reports', (done) => {
+    mockNotificationService.triggerNotification = jest
+      .fn()
+      .mockImplementation((event) => {
+        console.log('triggerNotification', event);
+        done();
+      });
+
+    const report = {
+      id: 'ReportConfig:1',
+      queries: ['SELECT _id FROM Person'],
+    };
+
+    jest
+      .spyOn(ReportChangeDetector.prototype, 'affectsReport')
+      .mockImplementation(() => true);
+
+    mockNotificationService.activeReports = jest
+      .fn()
+      .mockReturnValue(of([{ id: report.id }]));
+    mockReportStorage.fetchReport = jest.fn().mockReturnValue(of(report));
+
+    const calculationResult: ReportCalculation = new ReportCalculation(
+      '1',
+      report,
+    )
+      .setStatus(ReportCalculationStatus.FINISHED_SUCCESS)
+      .setOutcome({ result_hash: '123' });
+    mockCreateReportCalculationUseCase.startReportCalculation = jest
+      .fn()
+      .mockReturnValue(
+        of(new CreateReportCalculationSuccess(calculationResult)),
+      );
+    mockCreateReportCalculationUseCase.getCompletedReportCalculation = jest
+      .fn()
+      .mockReturnValue(of(calculationResult));
+
+    simulateDocChange({ id: 'Person:1', doc: {} });
+  });
+
+  xit('should trigger even after adding active report through NotificationService', async () => {
     activeReports.next(['report1']);
     activeReports.next(['report2' /* removed report1 */]);
 
