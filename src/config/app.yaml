@@ -20,3 +20,5 @@ SQS_CLIENT:
   SCHEMA_DESIGN_CONFIG: /app/_design/sqlite:config
 
 REPORT_CHANGES_POLL_INTERVAL: 10000
+
+OPENID_CONFIGURATION: http://localhost:8080/realms/dummy-realm/.well-known/openid-configuration

@@ -32,7 +32,7 @@ interface FetchReportsResponse {
 export class ReportRepository {
   constructor(private couchDbClient: CouchDbClient) {}
 
-  fetchReports(authToken?: string): Observable<FetchReportsResponse> {
+  fetchReports(): Observable<FetchReportsResponse> {
     const config: any = {
       params: {
         include_docs: true,
@@ -40,12 +40,6 @@ export class ReportRepository {
         endkey: '"ReportConfig:' + '\ufff0"',
       },
     };
-
-    if (authToken) {
-      config.headers = {
-        Authorization: authToken,
-      };
-    }
 
     return this.couchDbClient
       .getDatabaseDocument<FetchReportsResponse>({
@@ -61,17 +55,8 @@ export class ReportRepository {
       );
   }
 
-  fetchReport(
-    reportId: string,
-    authToken?: string | undefined,
-  ): Observable<ReportDoc> {
+  fetchReport(reportId: string): Observable<ReportDoc> {
     const config: any = {};
-
-    if (authToken) {
-      config.headers = {
-        Authorization: authToken,
-      };
-    }
 
     return this.couchDbClient
       .getDatabaseDocument<ReportDoc>({

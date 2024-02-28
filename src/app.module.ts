@@ -9,6 +9,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AppConfiguration } from './config/configuration';
 import { ReportChangesModule } from './report-changes/report-changes.module';
 import { NotificationModule } from './notification/notification.module';
+import { AuthModule } from './auth/auth.module';
 
 const lowSeverityLevels: SeverityLevel[] = ['log', 'info'];
 
@@ -35,6 +36,7 @@ const lowSeverityLevels: SeverityLevel[] = ['log', 'info'];
       ignoreEnvFile: false,
       load: [AppConfiguration],
     }),
+    AuthModule,
     SentryModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

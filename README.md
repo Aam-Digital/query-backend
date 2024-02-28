@@ -34,10 +34,10 @@ curl -X "POST" "https://keycloak.aam-digital.net/realms/<your_realm>/protocol/op
      --data-urlencode "client_id=<your_client_id>" \
      --data-urlencode "client_secret=<your_client_secret>" \
      --data-urlencode "grant_type=client_credentials" \
-     --data-urlencode "scopes=openid reports_read reports_write"
+     --data-urlencode "scopes=openid reporting_read reporting_write"
 ```
 Check API docs for the required "scopes".
-This returns a JWT access token required to provided as Bearer Token for any request to the API endpoints. Sample token:
+This returns a JWT access token required to provided as Bearer TokenDecorator for any request to the API endpoints. Sample token:
 ```json
 {
   "access_token": "eyJhbGciOiJSUzI...",
@@ -45,7 +45,7 @@ This returns a JWT access token required to provided as Bearer Token for any req
   "refresh_expires_in": 0,
   "token_type": "Bearer",
   "not-before-policy": 0,
-  "scope": "openid reports_read reports_write"
+  "scope": "openid reporting_read reporting_write"
 }
 ```
 
