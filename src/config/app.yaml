@@ -30,4 +30,4 @@ SENTRY:
   ENABLED: false
   INSTANCE_NAME: local-development # can be personalised in .env -> local-development-<your-name>
   ENVIRONMENT: local # local | development | production
-  DNS:
+  DNS: ''

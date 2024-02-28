@@ -1,122 +1,138 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SqsSchemaService } from './sqs-schema-generator.service';
+import {
+  SqsSchemaGeneratorConfig,
+  SqsSchemaService,
+} from './sqs-schema-generator.service';
+import { of, throwError } from 'rxjs';
+import { EntityConfig } from '../domain/EntityConfig';
+import { DocSuccess } from '../../couchdb/dtos';
+import spyOn = jest.spyOn;
 
 describe('SchemaGeneratorService', () => {
   let service: SqsSchemaService;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const entityConfig = {
-    'entity:Child': {
-      label: 'Child',
-      labelPlural: 'Children',
-      attributes: {
-        address: {
-          dataType: 'location',
-          label: 'Address',
+  let mockCouchDbClient: {
+    changes: jest.Mock;
+    headDatabaseDocument: jest.Mock;
+    getDatabaseDocument: jest.Mock;
+    find: jest.Mock;
+    putDatabaseDocument: jest.Mock;
+  };
+
+  let mockEntityConfigResolver: {
+    getEntityConfig: jest.Mock;
+  };
+
+  const sqsSchemaGeneratorConfig: SqsSchemaGeneratorConfig = {
+    SCHEMA_PATH: '/_design/sqlite:config',
+  };
+
+  const entityConfig: EntityConfig = {
+    version: 'rev-1',
+    entities: [
+      {
+        label: 'Child',
+        attributes: [
+          {
+            name: 'name',
+            type: 'TEXT',
+          },
+          {
+            name: 'age',
+            type: 'INTEGER',
+          },
+        ],
+      },
+      {
+        label: 'School',
+        attributes: [
+          {
+            name: 'name',
+            type: 'TEXT',
+          },
+          {
+            name: 'type',
+            type: 'TEXT',
+          },
+          {
+            name: 'numberOfStudents',
+            type: 'INTEGER',
+          },
+        ],
+      },
+    ],
+  };
+
+  const sqsConfig = {
+    _id: '_design/sqlite:config',
+    _rev: '1-00000000',
+    sql: {
+      tables: {
+        Child: {
+          fields: {
+            name: 'TEXT',
+            age: 'INTEGER',
+            _id: 'TEXT',
+            _rev: 'TEXT',
+            created: 'TEXT',
+            updated: 'TEXT',
+            inactive: 'INTEGER',
+            anonymized: 'INTEGER',
+          },
         },
-        health_bloodGroup: {
-          dataType: 'string',
-          label: 'Blood Group',
+        School: {
+          fields: {
+            name: 'TEXT',
+            type: 'TEXT',
+            numberOfStudents: 'INTEGER',
+            _id: 'TEXT',
+            _rev: 'TEXT',
+            created: 'TEXT',
+            updated: 'TEXT',
+            inactive: 'INTEGER',
+            anonymized: 'INTEGER',
+          },
         },
-        religion: {
-          dataType: 'string',
-          label: 'Religion',
-        },
-        motherTongue: {
-          dataType: 'string',
-          label: 'Mother Tongue',
-          description: 'The primary language spoken at home',
-        },
-        health_lastDentalCheckup: {
-          dataType: 'date',
-          label: 'Last Dental Check-Up',
-        },
-        birth_certificate: {
-          dataType: 'file',
-          label: 'Birth certificate',
+      },
+      indexes: [],
+      options: {
+        table_name: {
+          operation: 'prefix',
+          field: '_id',
+          separator: ':',
         },
       },
     },
-    'entity:School': {
-      attributes: {
-        name: {
-          dataType: 'string',
-          label: 'Name',
-        },
-        privateSchool: {
-          dataType: 'boolean',
-          label: 'Private School',
-        },
-        language: {
-          dataType: 'string',
-          label: 'Language',
-        },
-        address: {
-          dataType: 'location',
-          label: 'Address',
-        },
-        phone: {
-          dataType: 'string',
-          label: 'Phone Number',
-        },
-        timing: {
-          dataType: 'string',
-          label: 'School Timing',
-        },
-        remarks: {
-          dataType: 'string',
-          label: 'Remarks',
-        },
-      },
-    },
-    'entity:HistoricalEntityData': {
-      attributes: {
-        isMotivatedDuringClass: {
-          dataType: 'configurable-enum',
-          additional: 'rating-answer',
-          label: 'Motivated',
-          description: 'The child is motivated during the class.',
-        },
-        isParticipatingInClass: {
-          dataType: 'configurable-enum',
-          additional: 'rating-answer',
-          label: 'Participating',
-          description: 'The child is actively participating in the class.',
-        },
-        isInteractingWithOthers: {
-          dataType: 'configurable-enum',
-          additional: 'rating-answer',
-          label: 'Interacting',
-          description:
-            'The child interacts with other students during the class.',
-        },
-        doesHomework: {
-          dataType: 'configurable-enum',
-          additional: 'rating-answer',
-          label: 'Homework',
-          description: 'The child does its homework.',
-        },
-        asksQuestions: {
-          dataType: 'configurable-enum',
-          additional: 'rating-answer',
-          label: 'Asking Questions',
-          description: 'The child is asking questions during the class.',
-        },
-      },
-    },
-    'entity:User': {
-      attributes: {
-        phone: {
-          dataType: 'string',
-          label: 'Contact',
-        },
-      },
-    },
+    language: 'sqlite',
+    configVersion:
+      '2a26f7bc7e7e69940d811a4845a5f88374cbbb9868c8f4ce13303c3be71f2ad8',
   };
 
   beforeEach(async () => {
+    mockCouchDbClient = {
+      changes: jest.fn(),
+      headDatabaseDocument: jest.fn(),
+      getDatabaseDocument: jest.fn(),
+      find: jest.fn(),
+      putDatabaseDocument: jest.fn(),
+    };
+
+    mockEntityConfigResolver = {
+      getEntityConfig: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SqsSchemaService],
+      providers: [
+        {
+          provide: SqsSchemaService,
+          useFactory: () =>
+            new SqsSchemaService(
+              mockCouchDbClient,
+              mockEntityConfigResolver,
+              sqsSchemaGeneratorConfig,
+            ),
+        },
+      ],
     }).compile();
 
     service = module.get<SqsSchemaService>(SqsSchemaService);
@@ -125,4 +141,97 @@ describe('SchemaGeneratorService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('getSchemaPath() should return Schema', () => {
+    expect(service.getSchemaPath()).toEqual('/_design/sqlite:config');
+  });
+
+  it('updateSchema() should update Schema when new sqs config version is different then current', (done) => {
+    // given
+    resolveEntityConfig();
+    resolveSqsConfigWithOtherVersion();
+    resolveDocSuccess();
+    // when
+    service.updateSchema().subscribe({
+      next: () => {
+        // then
+        expect(mockCouchDbClient.putDatabaseDocument).toHaveBeenCalled();
+        done();
+      },
+      error: (err) => {
+        done(err);
+      },
+    });
+  });
+
+  it('updateSchema() should update Schema when no sqs could be fetched', (done) => {
+    // given
+    resolveEntityConfig();
+    resolveSqsConfigNotFound();
+    resolveDocSuccess();
+    // when
+    service.updateSchema().subscribe({
+      next: () => {
+        // then
+        expect(mockCouchDbClient.putDatabaseDocument).toHaveBeenCalled();
+        done();
+      },
+      error: (err) => {
+        done(err);
+      },
+    });
+  });
+
+  it('updateSchema() should not update Schema when entity:config is unchanged', (done) => {
+    // given
+    resolveEntityConfig();
+    resolveSqsConfig();
+    // when
+    service.updateSchema().subscribe({
+      next: () => {
+        // then
+        expect(mockCouchDbClient.putDatabaseDocument).not.toHaveBeenCalled();
+        done();
+      },
+      error: (err) => {
+        done(err);
+      },
+    });
+  });
+
+  function resolveEntityConfig() {
+    spyOn(mockEntityConfigResolver, 'getEntityConfig').mockReturnValue(
+      of(entityConfig),
+    );
+  }
+
+  function resolveSqsConfig() {
+    spyOn(mockCouchDbClient, 'getDatabaseDocument').mockReturnValue(
+      of(sqsConfig),
+    );
+  }
+
+  function resolveDocSuccess() {
+    spyOn(mockCouchDbClient, 'putDatabaseDocument').mockReturnValue(
+      of(new DocSuccess(true, 'id-123', 'r-123')),
+    );
+  }
+
+  function resolveSqsConfigWithOtherVersion() {
+    const sqsConfigWithNewVersion = { ...sqsConfig };
+    sqsConfigWithNewVersion.configVersion = '123';
+    spyOn(mockCouchDbClient, 'getDatabaseDocument').mockReturnValue(
+      of(sqsConfigWithNewVersion),
+    );
+  }
+
+  function resolveSqsConfigNotFound() {
+    const sqsConfigWithNewVersion = { ...sqsConfig };
+    sqsConfigWithNewVersion.configVersion = '123';
+    spyOn(mockCouchDbClient, 'getDatabaseDocument').mockReturnValue(
+      throwError(() => {
+        throw new Error('not found');
+      }),
+    );
+  }
 });

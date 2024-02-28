@@ -1,15 +1,37 @@
+import * as crypto from 'crypto';
+
 export class SqsSchema {
+  readonly language: 'sqlite';
+  readonly configVersion: string;
+  readonly sql: {
+    tables: SqlTables;
+    // Optional SQL indices
+    indexes: string[];
+    // Further options
+    options: SqlOptions;
+  };
+
   constructor(
-    public sql: {
-      // SQL table definitions
-      tables: SqlTables;
-      // Optional SQL indices
-      indexes?: string[];
-      // Further options
-      options?: SqlOptions;
-    },
-    public language: 'sqlite' = 'sqlite',
-  ) {}
+    tables: SqlTables,
+    indexes: string[],
+    options: SqlOptions,
+    language: 'sqlite' = 'sqlite',
+  ) {
+    this.sql = {
+      tables: tables,
+      indexes: indexes,
+      options: options,
+    };
+    this.language = language;
+    this.configVersion = this.asHash();
+  }
+
+  private asHash(): string {
+    return crypto
+      .createHash('sha256')
+      .update(JSON.stringify(this.sql))
+      .digest('hex');
+  }
 }
 
 type SqlTables = {
