@@ -16,7 +16,7 @@ import { Webhook } from '../domain/webhook';
 import { NotificationService } from '../core/notification.service';
 import { CreateWebhookDto, WebhookDto } from './dtos';
 import { JwtAuthGuard } from '../../auth/core/jwt-auth.guard';
-import { Scopes } from '../../auth/core/scope.decorator';
+import { Scopes } from '../../auth/core/scopes.decorator';
 
 @Controller('/api/v1/reporting/webhook')
 export class WebhookController {

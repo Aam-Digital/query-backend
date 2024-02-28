@@ -17,7 +17,7 @@ import {
   CreateReportCalculationUseCase,
 } from '../core/use-cases/create-report-calculation-use-case.service';
 import { JwtAuthGuard } from '../../auth/core/jwt-auth.guard';
-import { Scopes } from '../../auth/core/scope.decorator';
+import { Scopes } from '../../auth/core/scopes.decorator';
 
 @Controller('/api/v1/reporting')
 export class ReportCalculationController {

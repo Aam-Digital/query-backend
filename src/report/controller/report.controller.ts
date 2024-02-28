@@ -18,7 +18,7 @@ import { ReportDto } from './dtos';
 import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
 import { JwtAuthGuard } from '../../auth/core/jwt-auth.guard';
-import { Scopes } from '../../auth/core/scope.decorator';
+import { Scopes } from '../../auth/core/scopes.decorator';
 
 @Controller('/api/v1/reporting')
 export class ReportController {

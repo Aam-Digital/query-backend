@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
-import { Scopes } from './scope.decorator';
+import { Scopes } from './scopes.decorator';
 
 /**
  * Represents a validated JwtTokenPayload
