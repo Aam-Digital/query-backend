@@ -8,6 +8,7 @@ import { ReportCalculationRepository } from '../repository/report-calculation-re
 import { ReportRepository } from '../repository/report-repository.service';
 import { ConfigService } from '@nestjs/config';
 import { CreateReportCalculationUseCase } from '../core/use-cases/create-report-calculation-use-case.service';
+import { JwtService } from '@nestjs/jwt';
 
 describe('ReportCalculationController', () => {
   let controller: ReportCalculationController;
@@ -23,6 +24,7 @@ describe('ReportCalculationController', () => {
         ReportCalculationRepository,
         ReportRepository,
         CreateReportCalculationUseCase,
+        { provide: JwtService, useValue: {} },
         {
           provide: ConfigService,
           useValue: {
