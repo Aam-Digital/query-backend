@@ -1,0 +1,13 @@
+diff --git a/node_modules/mock-couch/index.js b/node_modules/mock-couch/index.js
+index 952390b..aecb2b3 100644
+--- a/node_modules/mock-couch/index.js
++++ b/node_modules/mock-couch/index.js
+@@ -110,6 +110,8 @@ function MockCouch(server, options) {
+ 
+   this.addDB = require('./lib/addDB');
+   this.addDoc = require('./lib/addDoc');
++  
++  this._restifyServer = server;
+ }
+ util.inherits(MockCouch, events.EventEmitter);
+ 
