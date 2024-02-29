@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReportCalculationProcessor } from './report-calculation-processor.service';
 import { ReportingStorage } from '../storage/reporting-storage.service';
-import { SqsReportCalculator } from '../core/sqs-report-calculator.service';
+import { ReportCalculator } from '../core/report-calculator.service';
 
 describe('ReportCalculationProcessorService', () => {
   let service: ReportCalculationProcessor;
@@ -15,7 +15,7 @@ describe('ReportCalculationProcessorService', () => {
       providers: [
         ReportCalculationProcessor,
         { provide: ReportingStorage, useValue: mockReportStorage },
-        { provide: SqsReportCalculator, useValue: mockSqsReportCalculator },
+        { provide: ReportCalculator, useValue: mockSqsReportCalculator },
       ],
     }).compile();
 

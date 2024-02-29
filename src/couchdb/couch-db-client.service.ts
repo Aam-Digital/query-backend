@@ -1,14 +1,9 @@
-import {
-  ForbiddenException,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
-import { AxiosHeaders } from 'axios';
+import { AxiosHeaders, AxiosResponse } from 'axios';
 import { CouchDbChangesResponse } from './dtos';
+import { ICouchDbClient } from './couch-db-client.interface';
 
 export class CouchDbClientConfig {
   BASE_URL = '';
@@ -17,7 +12,7 @@ export class CouchDbClientConfig {
   BASIC_AUTH_PASSWORD = '';
 }
 
-export class CouchDbClient {
+export class CouchDbClient implements ICouchDbClient {
   private readonly logger = new Logger(CouchDbClient.name);
 
   constructor(private httpService: HttpService) {}
@@ -36,7 +31,10 @@ export class CouchDbClient {
       );
   }
 
-  headDatabaseDocument(request: { documentId: string; config?: any }) {
+  headDatabaseDocument(request: {
+    documentId: string;
+    config?: any;
+  }): Observable<AxiosResponse<any, any>> {
     return this.httpService.head(`${request.documentId}`, request.config).pipe(
       catchError((err) => {
         if (err.response.status !== 404) {
@@ -131,17 +129,6 @@ export class CouchDbClient {
   }
 
   private handleError(err: any) {
-    console.error(err);
-
-    if (err.response?.status === 401) {
-      throw new UnauthorizedException();
-    }
-    if (err.response?.status === 403) {
-      throw new ForbiddenException();
-    }
-    if (err.response?.status === 404) {
-      throw new NotFoundException();
-    }
-    throw new InternalServerErrorException();
+    this.logger.error(err);
   }
 }

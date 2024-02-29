@@ -5,27 +5,27 @@ import { HttpModule } from '@nestjs/axios';
 import { ReportCalculationController } from './controller/report-calculation.controller';
 import { ReportCalculationTask } from './tasks/report-calculation-task.service';
 import { ReportCalculationProcessor } from './tasks/report-calculation-processor.service';
-import { SqsReportCalculator } from './core/sqs-report-calculator.service';
+import { ReportCalculator } from './core/report-calculator.service';
 import { CreateReportCalculationUseCase } from './core/use-cases/create-report-calculation-use-case.service';
-import { CouchSqsClient } from './sqs/couch-sqs.client';
 import { ConfigService } from '@nestjs/config';
 import {
   CreateReportCalculationUseCaseFactory,
-  ReportCouchSqsClientFactory,
+  ReportCalculationProcessorFactory,
   ReportingStorageFactory,
   SqsReportCalculatorFactory,
 } from './di/report-configuration';
+import { QueryService } from '../query/core/query-service';
+import { QueryModule } from '../query/query.module';
 
 @Module({
   controllers: [ReportController, ReportCalculationController],
-  imports: [HttpModule],
+  imports: [HttpModule, QueryModule],
   providers: [
     ReportCalculationTask,
-    ReportCalculationProcessor,
     {
-      provide: CouchSqsClient,
-      useFactory: ReportCouchSqsClientFactory,
-      inject: [ConfigService],
+      provide: ReportCalculationProcessor,
+      useFactory: ReportCalculationProcessorFactory,
+      inject: [ReportingStorage, ReportCalculator],
     },
     {
       provide: ReportingStorage,
@@ -33,9 +33,9 @@ import {
       inject: [ConfigService],
     },
     {
-      provide: SqsReportCalculator,
+      provide: ReportCalculator,
       useFactory: SqsReportCalculatorFactory,
-      inject: [CouchSqsClient, ReportingStorage],
+      inject: [QueryService, ReportingStorage],
     },
     {
       provide: CreateReportCalculationUseCase,
