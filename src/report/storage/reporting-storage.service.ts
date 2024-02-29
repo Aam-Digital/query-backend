@@ -24,8 +24,8 @@ export class ReportingStorage implements IReportingStorage {
 
   reportCalculationUpdated = new Subject<ReportCalculation>();
 
-  fetchAllReports(authToken: string, mode = 'sql'): Observable<Report[]> {
-    return this.reportRepository.fetchReports(authToken).pipe(
+  fetchAllReports(mode = 'sql'): Observable<Report[]> {
+    return this.reportRepository.fetchReports().pipe(
       map((response) => {
         if (!response || !response.rows) {
           return [];
@@ -49,11 +49,8 @@ export class ReportingStorage implements IReportingStorage {
     );
   }
 
-  fetchReport(
-    reportRef: Reference,
-    authToken?: string | undefined,
-  ): Observable<Report | undefined> {
-    return this.reportRepository.fetchReport(reportRef.id, authToken).pipe(
+  fetchReport(reportRef: Reference): Observable<Report | undefined> {
+    return this.reportRepository.fetchReport(reportRef.id).pipe(
       map((report) => {
         return new Report(
           report._id,

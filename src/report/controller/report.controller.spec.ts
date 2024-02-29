@@ -6,6 +6,7 @@ import { ReportCalculationRepository } from '../repository/report-calculation-re
 import { HttpModule } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { CouchDbClient } from '../../couchdb/couch-db-client.service';
+import { JwtService } from '@nestjs/jwt';
 
 describe('ReportController', () => {
   let service: ReportController;
@@ -19,6 +20,7 @@ describe('ReportController', () => {
         ReportController,
         ReportRepository,
         ReportCalculationRepository,
+        { provide: JwtService, useValue: {} },
         {
           provide: ConfigService,
           useValue: {

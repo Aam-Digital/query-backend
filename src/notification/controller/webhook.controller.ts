@@ -7,6 +7,7 @@ import {
   Headers,
   Param,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { defaultIfEmpty, map, Observable, zipAll } from 'rxjs';
 import { Reference } from '../../domain/reference';
@@ -14,6 +15,8 @@ import { WebhookStorage } from '../storage/webhook-storage.service';
 import { Webhook } from '../domain/webhook';
 import { NotificationService } from '../core/notification.service';
 import { CreateWebhookDto, WebhookDto } from './dtos';
+import { JwtAuthGuard } from '../../auth/core/jwt-auth.guard';
+import { Scopes } from '../../auth/core/scopes.decorator';
 
 @Controller('/api/v1/reporting/webhook')
 export class WebhookController {
@@ -23,6 +26,8 @@ export class WebhookController {
   ) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @Scopes(['reporting_read'])
   fetchWebhooksOfUser(): Observable<WebhookDto[]> {
     return this.webhookStorage.fetchAllWebhooks('user-token').pipe(
       map((webhooks) => webhooks.map((webhook) => this.mapToDto(webhook))),
@@ -32,7 +37,12 @@ export class WebhookController {
   }
 
   @Get('/:webhookId')
-  fetchWebhook(@Param('webhookId') webhookId: string): Observable<WebhookDto> {
+  @UseGuards(JwtAuthGuard)
+  @Scopes(['reporting_read'])
+  fetchWebhook(
+    @Headers('Authorization') token: string,
+    @Param('webhookId') webhookId: string,
+  ): Observable<WebhookDto> {
     return this.webhookStorage.fetchWebhook(new Reference(webhookId)).pipe(
       // TODO: check auth?
       map((webhook) => {
@@ -45,6 +55,8 @@ export class WebhookController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @Scopes(['reporting_write'])
   createWebhook(
     @Headers('Authorization') token: string,
     @Body() requestBody: CreateWebhookDto,
@@ -63,6 +75,8 @@ export class WebhookController {
   }
 
   @Post('/:webhookId/subscribe/report/:reportId')
+  @UseGuards(JwtAuthGuard)
+  @Scopes(['reporting_write'])
   subscribeReportNotifications(
     @Headers('Authorization') token: string,
     @Param('webhookId') webhookId: string,
@@ -77,6 +91,8 @@ export class WebhookController {
   }
 
   @Delete('/:webhookId/subscribe/report/:reportId')
+  @UseGuards(JwtAuthGuard)
+  @Scopes(['reporting_write'])
   unsubscribeReportNotifications(
     @Headers('Authorization') token: string,
     @Param('webhookId') webhookId: string,

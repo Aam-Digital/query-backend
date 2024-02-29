@@ -23,6 +23,8 @@ QUERY:
 
 REPORT_CHANGES_POLL_INTERVAL: 10000
 
+OPENID_CONFIGURATION: http://localhost:8080/realms/dummy-realm/.well-known/openid-configuration
+
 # Logger Configuration
 # values can be overwritten in .env file
 
