@@ -4,7 +4,7 @@ import { ArgumentsHost, INestApplication } from '@nestjs/common';
 import { BaseExceptionFilter, HttpAdapterHost } from '@nestjs/core';
 
 export class SentryConfiguration {
-  ENABLED = '';
+  ENABLED: boolean = false;
   DSN = '';
   INSTANCE_NAME = '';
   ENVIRONMENT = '';
@@ -26,7 +26,7 @@ export function configureSentry(
   configService: ConfigService,
 ): void {
   const sentryConfiguration = loadSentryConfiguration(configService);
-  if (sentryConfiguration.ENABLED === 'true') {
+  if (sentryConfiguration.ENABLED) {
     configureLoggingSentry(app, sentryConfiguration);
   }
 }
