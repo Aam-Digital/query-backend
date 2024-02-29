@@ -6,7 +6,16 @@ import { ReportCalculationOutcomeSuccess } from '../../domain/report-calculation
 import { Report } from '../../domain/report';
 import { CouchDbChangesService } from '../storage/couch-db-changes.service';
 import { ReportingStorage } from '../../report/storage/reporting-storage.service';
-import { filter, map, Observable, switchMap, tap, zip } from 'rxjs';
+import {
+  filter,
+  firstValueFrom,
+  from,
+  map,
+  Observable,
+  switchMap,
+  tap,
+  zip,
+} from 'rxjs';
 import {
   CreateReportCalculationFailed,
   CreateReportCalculationUseCase,
@@ -27,40 +36,50 @@ export class ReportChangesService {
     private createReportCalculation: CreateReportCalculationUseCase,
     private reportSchemaGenerator: IReportSchemaGenerator,
   ) {
-    this.notificationService
-      .activeReports()
-      .subscribe((reports: Reference[]) => {
-        reports.forEach((r) => this.registerReportMonitoring(r));
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        for (const [id, monitor] of this.reportMonitors.entries()) {
-          if (!reports.some((r) => r.id === id)) {
-            this.reportMonitors.delete(id);
-          }
-        }
-      });
-
     this.monitorCouchDbChanges();
   }
 
-  async registerReportMonitoring(report: Reference) {
-    if (!this.reportMonitors.has(report.id)) {
-      this.setReportMonitor(report);
+  private async updateReportMonitors() {
+    const reports: Reference[] = await firstValueFrom(
+      this.notificationService.activeReports(),
+    );
+
+    // delete reports that are no longer active
+    for (const existingMonitorId of this.reportMonitors.keys()) {
+      if (!reports.some((r) => r.id === existingMonitorId)) {
+        this.reportMonitors.delete(existingMonitorId);
+      }
     }
+
+    for (const currentReport of reports) {
+      if (!this.reportMonitors.has(currentReport.id)) {
+        await firstValueFrom(this.setReportMonitor(currentReport));
+      }
+    }
+
+    return this.reportMonitors;
   }
 
-  private setReportMonitor(report: Reference) {
-    this.reportStorage
-      .fetchReport(report)
-      .subscribe((report: Report | undefined) => {
+  private setReportMonitor(
+    report: Reference,
+  ): Observable<ReportChangeDetector | undefined> {
+    return this.reportStorage.fetchReport(report).pipe(
+      map((report: Report | undefined) => {
         if (!report) {
           return;
         }
 
-        this.reportMonitors.set(
-          report.id,
-          new ReportChangeDetector(report, this.reportSchemaGenerator),
+        const changeDetector = new ReportChangeDetector(
+          report,
+          this.reportSchemaGenerator,
         );
-      });
+        if (changeDetector) {
+          this.reportMonitors.set(report.id, changeDetector);
+        }
+
+        return changeDetector;
+      }),
+    );
   }
 
   private checkReportConfigUpdate(change: DatabaseChangeResult) {
@@ -87,6 +106,10 @@ export class ReportChangesService {
       .pipe(
         tap((change: DocChangeDetails) =>
           this.checkReportConfigUpdate(change.change),
+        ),
+        switchMap((change: DocChangeDetails) =>
+          // await an update of monitors for currently active reports
+          from(this.updateReportMonitors()).pipe(map(() => change)),
         ),
         switchMap((change: DocChangeDetails) =>
           this.changeIsAffectingReport(change),
