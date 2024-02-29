@@ -4,7 +4,7 @@ info:
   description: |-
     API to manage reports that provide data calculated based on any entities of the Aam Digital system
     and offer notifications when data of such reports changes.
-  version: 1.0.0-alpha.2
+  version: 1.0.0-alpha.3
 servers:
   - url: https://{customerId}.aam-digital.net/api/v1/reporting
     description: Developer Instance for testing
@@ -141,7 +141,7 @@ paths:
             type: string
             format: date
       responses:
-        200:
+        201:
           description: Return calculation identifier, to be used to check status and result data
           content:
             application/json:
@@ -178,9 +178,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ReportCalculation'
+                $ref: '#/components/schemas/ReportCalculation'
         401:
           description: If the access token does not grant permission to this Report
           content:
