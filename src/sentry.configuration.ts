@@ -5,7 +5,7 @@ import { BaseExceptionFilter, HttpAdapterHost } from '@nestjs/core';
 
 export class SentryConfiguration {
   ENABLED = '';
-  DNS = '';
+  DSN = '';
   INSTANCE_NAME = '';
   ENVIRONMENT = '';
 }
@@ -15,7 +15,7 @@ function loadSentryConfiguration(
 ): SentryConfiguration {
   return {
     ENABLED: configService.getOrThrow('SENTRY_ENABLED'),
-    DNS: configService.getOrThrow('SENTRY_DNS'),
+    DSN: configService.getOrThrow('SENTRY_DSN'),
     INSTANCE_NAME: configService.getOrThrow('SENTRY_INSTANCE_NAME'),
     ENVIRONMENT: configService.getOrThrow('SENTRY_ENVIRONMENT'),
   };
@@ -46,7 +46,7 @@ function configureLoggingSentry(
     debug: true,
     serverName: sentryConfiguration.INSTANCE_NAME,
     environment: sentryConfiguration.ENVIRONMENT,
-    dsn: sentryConfiguration.DNS,
+    dsn: sentryConfiguration.DSN,
     integrations: [
       // enable HTTP calls tracing
       new Sentry.Integrations.Console(),
