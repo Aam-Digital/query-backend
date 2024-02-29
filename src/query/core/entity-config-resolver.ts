@@ -1,6 +1,10 @@
 import { IEntityConfigResolver } from './entity-config-resolver.interface';
 import { map, Observable } from 'rxjs';
-import { Entity, EntityAttribute, EntityConfig } from '../domain/EntityConfig';
+import {
+  EntityAttribute,
+  EntityConfig,
+  EntityType,
+} from '../domain/EntityConfig';
 import { CouchDbClient } from '../../couchdb/couch-db-client.service';
 
 export interface AppConfigFile {
@@ -39,7 +43,7 @@ export class EntityConfigResolver implements IEntityConfigResolver {
           const keys = Object.keys(config.data).filter((key) =>
             key.startsWith('entity:'),
           );
-          const entities: Entity[] = [];
+          const entities: EntityType[] = [];
           for (let i = 0; i < keys.length; i++) {
             entities.push(this.parseEntityConfig(keys[i], config));
           }
@@ -48,7 +52,10 @@ export class EntityConfigResolver implements IEntityConfigResolver {
       );
   }
 
-  private parseEntityConfig(entityKey: string, config: AppConfigFile): Entity {
+  private parseEntityConfig(
+    entityKey: string,
+    config: AppConfigFile,
+  ): EntityType {
     const data = config.data[entityKey];
 
     let label: string;
@@ -67,6 +74,6 @@ export class EntityConfigResolver implements IEntityConfigResolver {
         ),
     );
 
-    return new Entity(label, attributes);
+    return new EntityType(label, attributes);
   }
 }

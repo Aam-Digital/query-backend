@@ -5,7 +5,7 @@ export class EntityAttribute {
   ) {}
 }
 
-export class Entity {
+export class EntityType {
   constructor(
     public label: string,
     public attributes: EntityAttribute[],
@@ -15,6 +15,6 @@ export class Entity {
 export class EntityConfig {
   constructor(
     public version: string,
-    public entities: Entity[],
+    public entities: EntityType[],
   ) {}
 }
