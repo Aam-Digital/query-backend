@@ -46,6 +46,9 @@ export class MockCouch {
     let findResults: EntityDoc[] = [];
 
     const selector = req.body?.selector;
+
+    // WARNING: Fake implementation, only working for getting results related to a calculation.id
+    // TODO: proper mock of _find request to CouchDB for e2e tests
     if (selector['calculation.id']) {
       for (const [id, doc] of Object.entries<EntityDoc>(db)) {
         if (doc['calculation']?.id === selector['calculation.id']['$eq']) {

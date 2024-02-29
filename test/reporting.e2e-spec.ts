@@ -11,12 +11,13 @@ import {
 } from '../src/domain/report-calculation';
 import { ReportData } from '../src/domain/report-data';
 import { EntityDoc } from '../src/report-changes/storage/database-changes.service';
+import { AuthModule } from '../src/auth/auth.module';
+import { MockAuthModule } from './mock-auth.module';
 
 jestOpenAPI(__dirname + '/../docs/api-specs/reporting-api-v1.yaml');
 
 describe('Reporting Module (e2e)', () => {
   const API_REPORTING_PREFIX = '/api/v1/reporting';
-  const API_NOTIFICATION_PREFIX = '/api/v1/notifications';
   let app: INestApplication;
 
   let couchdb: MockCouch;
@@ -36,7 +37,10 @@ describe('Reporting Module (e2e)', () => {
 
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideModule(AuthModule)
+      .useModule(MockAuthModule)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
