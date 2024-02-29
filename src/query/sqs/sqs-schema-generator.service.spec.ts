@@ -8,7 +8,7 @@ import { EntityConfig } from '../domain/EntityConfig';
 import { DocSuccess } from '../../couchdb/dtos';
 import spyOn = jest.spyOn;
 
-describe('SchemaGeneratorService', () => {
+describe('SqsSchemaService', () => {
   let service: SqsSchemaService;
 
   let mockCouchDbClient: {
