@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SqsReportCalculator } from './sqs-report-calculator.service';
+import { ReportCalculator } from './report-calculator.service';
 import { ReportingStorage } from '../storage/reporting-storage.service';
-import { CouchSqsClient } from '../sqs/couch-sqs.client';
+import { SqsClient } from '../../query/sqs/sqs.client';
 
 describe('SqsReportCalculatorService', () => {
-  let service: SqsReportCalculator;
+  let service: ReportCalculator;
 
   let mockCouchSqsClient: { executeQuery: jest.Mock };
   let mockReportStorage: { fetchAllReports: jest.Mock };
@@ -12,13 +12,13 @@ describe('SqsReportCalculatorService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        SqsReportCalculator,
-        { provide: CouchSqsClient, useValue: mockCouchSqsClient },
+        ReportCalculator,
+        { provide: SqsClient, useValue: mockCouchSqsClient },
         { provide: ReportingStorage, useValue: mockReportStorage },
       ],
     }).compile();
 
-    service = module.get<SqsReportCalculator>(SqsReportCalculator);
+    service = module.get<ReportCalculator>(ReportCalculator);
   });
 
   it('should be defined', () => {

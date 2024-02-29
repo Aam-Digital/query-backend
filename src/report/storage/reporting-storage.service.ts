@@ -1,6 +1,6 @@
 import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
-import { IReportStorage } from '../core/report-storage.interface';
+import { IReportingStorage } from '../core/report-storage.interface';
 import { ReportRepository } from '../repository/report-repository.service';
 import { map, Observable, Subject, switchMap, tap } from 'rxjs';
 import { NotFoundException } from '@nestjs/common';
@@ -15,7 +15,7 @@ import {
 import { ReportData } from '../../domain/report-data';
 import { IReportSchemaGenerator } from '../core/report-schema-generator.interface';
 
-export class ReportingStorage implements IReportStorage {
+export class ReportingStorage implements IReportingStorage {
   constructor(
     private reportRepository: ReportRepository,
     private reportCalculationRepository: ReportCalculationRepository,
@@ -24,8 +24,8 @@ export class ReportingStorage implements IReportStorage {
 
   reportCalculationUpdated = new Subject<ReportCalculation>();
 
-  fetchAllReports(authToken: string, mode = 'sql'): Observable<Report[]> {
-    return this.reportRepository.fetchReports(authToken).pipe(
+  fetchAllReports(mode = 'sql'): Observable<Report[]> {
+    return this.reportRepository.fetchReports().pipe(
       map((response) => {
         if (!response || !response.rows) {
           return [];
@@ -49,11 +49,8 @@ export class ReportingStorage implements IReportStorage {
     );
   }
 
-  fetchReport(
-    reportRef: Reference,
-    authToken?: string | undefined,
-  ): Observable<Report | undefined> {
-    return this.reportRepository.fetchReport(reportRef.id, authToken).pipe(
+  fetchReport(reportRef: Reference): Observable<Report | undefined> {
+    return this.reportRepository.fetchReport(reportRef.id).pipe(
       map((report) => {
         return new Report(
           report._id,

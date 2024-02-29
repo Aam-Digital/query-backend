@@ -11,7 +11,7 @@ export const CouchdbChangesServiceFactory = (
   configService: ConfigService,
 ): CouchDbChangesService => {
   return new CouchDbChangesService(
-    DefaultCouchDbClientFactory('COUCH_DB_CLIENT_REPORT_', configService),
+    DefaultCouchDbClientFactory('COUCH_DB_CLIENT_APP_', configService),
     {
       POLL_INTERVAL: configService.getOrThrow('REPORT_CHANGES_POLL_INTERVAL'),
     },

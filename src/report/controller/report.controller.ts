@@ -1,9 +1,9 @@
 import {
   Controller,
   Get,
-  Headers,
   NotFoundException,
   Param,
+  UseGuards,
 } from '@nestjs/common';
 import {
   defaultIfEmpty,
@@ -17,28 +17,31 @@ import { ReportingStorage } from '../storage/reporting-storage.service';
 import { ReportDto } from './dtos';
 import { Reference } from '../../domain/reference';
 import { Report } from '../../domain/report';
+import { JwtAuthGuard } from '../../auth/core/jwt-auth.guard';
+import { Scopes } from '../../auth/core/scopes.decorator';
 
 @Controller('/api/v1/reporting')
 export class ReportController {
   constructor(private reportStorage: ReportingStorage) {}
 
   @Get('/report')
-  fetchReports(
-    @Headers('Authorization') token: string,
-  ): Observable<ReportDto[]> {
-    return this.reportStorage.fetchAllReports(token, 'sql').pipe(
-      mergeMap((reports) => reports.map((report) => this.getReportDto(report))),
+  @UseGuards(JwtAuthGuard)
+  @Scopes(['reporting_read'])
+  fetchReports(): Observable<ReportDto[]> {
+    return this.reportStorage.fetchAllReports('sql').pipe(
+      mergeMap((reports: Report[]) =>
+        reports.map((report) => this.getReportDto(report)),
+      ),
       zipAll(),
       defaultIfEmpty([]),
     );
   }
 
   @Get('/report/:reportId')
-  fetchReport(
-    @Headers('Authorization') token: string,
-    @Param('reportId') reportId: string,
-  ): Observable<ReportDto> {
-    return this.reportStorage.fetchReport(new Reference(reportId), token).pipe(
+  @UseGuards(JwtAuthGuard)
+  @Scopes(['reporting_read'])
+  fetchReport(@Param('reportId') reportId: string): Observable<ReportDto> {
+    return this.reportStorage.fetchReport(new Reference(reportId)).pipe(
       switchMap((report) => {
         if (!report) {
           throw new NotFoundException();
