@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   InternalServerErrorException,
   NotFoundException,
+  OnModuleDestroy,
   UnauthorizedException,
 } from '@nestjs/common';
 import {
@@ -17,8 +18,10 @@ import {
   of,
   repeat,
   ReplaySubject,
+  Subject,
   Subscription,
   switchMap,
+  takeUntil,
   tap,
 } from 'rxjs';
 import { CouchDbClient } from '../../couchdb/couch-db-client.service';
@@ -37,12 +40,21 @@ export class CouchDbChangesConfig {
 /**
  * Access _changes from a CouchDB
  */
-export class CouchDbChangesService extends DatabaseChangesService {
+export class CouchDbChangesService
+  extends DatabaseChangesService
+  implements OnModuleDestroy
+{
   constructor(
     private couchdbClient: CouchDbClient,
     private config: CouchDbChangesConfig,
   ) {
     super();
+  }
+
+  private _onModuleDestroy = new Subject<void>();
+
+  onModuleDestroy() {
+    this._onModuleDestroy.next();
   }
 
   private _changesSubj = new ReplaySubject<DatabaseChangeResult[]>(1);
@@ -61,6 +73,7 @@ export class CouchDbChangesService extends DatabaseChangesService {
         repeat({
           delay: Number.parseInt(this.config.POLL_INTERVAL),
         }),
+        takeUntil(this._onModuleDestroy),
       );
 
       this._changesSubscription = changesFeed
