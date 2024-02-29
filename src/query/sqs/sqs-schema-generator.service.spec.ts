@@ -155,7 +155,52 @@ describe('SqsSchemaService', () => {
     service.updateSchema().subscribe({
       next: () => {
         // then
-        expect(mockCouchDbClient.putDatabaseDocument).toHaveBeenCalled();
+        expect(mockCouchDbClient.putDatabaseDocument).toHaveBeenCalledWith({
+          documentId: '/_design/sqlite:config',
+          config: {},
+          body: {
+            configVersion:
+              '2a26f7bc7e7e69940d811a4845a5f88374cbbb9868c8f4ce13303c3be71f2ad8',
+            language: 'sqlite',
+            sql: {
+              indexes: [],
+              options: {
+                table_name: {
+                  field: '_id',
+                  operation: 'prefix',
+                  separator: ':',
+                },
+              },
+              tables: {
+                Child: {
+                  fields: {
+                    _id: 'TEXT',
+                    _rev: 'TEXT',
+                    age: 'INTEGER',
+                    anonymized: 'INTEGER',
+                    created: 'TEXT',
+                    inactive: 'INTEGER',
+                    name: 'TEXT',
+                    updated: 'TEXT',
+                  },
+                },
+                School: {
+                  fields: {
+                    _id: 'TEXT',
+                    _rev: 'TEXT',
+                    anonymized: 'INTEGER',
+                    created: 'TEXT',
+                    inactive: 'INTEGER',
+                    name: 'TEXT',
+                    numberOfStudents: 'INTEGER',
+                    type: 'TEXT',
+                    updated: 'TEXT',
+                  },
+                },
+              },
+            },
+          },
+        });
         done();
       },
       error: (err) => {
